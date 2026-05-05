@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CandidateChips } from '../components/CandidateChips';
 import { QuantityPicker } from '../components/QuantityPicker';
 import { colors, fontSizes, spacing, touchTarget } from '../constants/theme';
 import { useShoppingContext } from '../context/ShoppingContext';
@@ -36,14 +37,19 @@ export default function ScannerScreen() {
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [nameError, setNameError] = useState('');
+  const [nameEdited, setNameEdited] = useState(false);
+  const [priceEdited, setPriceEdited] = useState(false);
 
   const priceRef = useRef<TextInput>(null);
   const nameRef = useRef<TextInput>(null);
 
+  // Populate fields when OCR result arrives
   useEffect(() => {
     if (result) {
       setName(result.name);
       setPrice(result.price !== null ? result.price.toFixed(2) : '');
+      setNameEdited(false);
+      setPriceEdited(false);
       if (!result.name) {
         nameRef.current?.focus();
       } else if (result.price === null) {
@@ -73,6 +79,8 @@ export default function ScannerScreen() {
     setPrice('');
     setQuantity(1);
     setNameError('');
+    setNameEdited(false);
+    setPriceEdited(false);
     reset();
     await extract(uri);
   }, [extract, reset]);
@@ -89,8 +97,7 @@ export default function ScannerScreen() {
       return;
     }
     setNameError('');
-    const normalised = price.replace(',', '.');
-    const parsedPrice = parseFloat(normalised) || 0;
+    const parsedPrice = parseFloat(price.replace(',', '.')) || 0;
 
     addItem({
       id: Date.now().toString(),
@@ -106,9 +113,15 @@ export default function ScannerScreen() {
 
   const handleRetake = useCallback(() => {
     setImageUri(null);
+    setNameEdited(false);
+    setPriceEdited(false);
     reset();
     launchCamera();
   }, [launchCamera, reset]);
+
+  // Price candidates formatted as "€X.XX" for display
+  const formattedPriceCandidates = (result?.priceCandidates ?? []).map((p) => `€${p.toFixed(2)}`);
+  const currentPriceForChip = price ? `€${parseFloat(price.replace(',', '.')).toFixed(2)}` : '';
 
   return (
     <KeyboardAvoidingView
@@ -136,13 +149,14 @@ export default function ScannerScreen() {
           )}
         </View>
 
-        {/* OCR notice when no text found */}
+        {/* OCR notice when nothing found */}
         {result && !result.name && result.price === null && (
           <Text style={styles.ocrNotice}>Couldn't read tag — please type manually</Text>
         )}
 
         {/* Form */}
         <View style={styles.form}>
+          {/* Name field */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Product name</Text>
             <TextInput
@@ -151,6 +165,7 @@ export default function ScannerScreen() {
               value={name}
               onChangeText={(t) => {
                 setName(t);
+                setNameEdited(true);
                 if (t.trim()) setNameError('');
               }}
               placeholder="e.g. Leche entera"
@@ -160,22 +175,43 @@ export default function ScannerScreen() {
               autoCapitalize="words"
             />
             {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
+            {!nameEdited && (
+              <CandidateChips
+                candidates={result?.nameCandidates ?? []}
+                currentValue={name}
+                onSelect={(v) => setName(v)}
+                testID="name-chips"
+              />
+            )}
           </View>
 
+          {/* Price field */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Price (€)</Text>
             <TextInput
               ref={priceRef}
               style={styles.input}
               value={price}
-              onChangeText={setPrice}
+              onChangeText={(t) => {
+                setPrice(t);
+                setPriceEdited(true);
+              }}
               placeholder="0,00"
               placeholderTextColor={colors.textSecondary}
               keyboardType="decimal-pad"
               returnKeyType="done"
             />
+            {!priceEdited && (
+              <CandidateChips
+                candidates={formattedPriceCandidates}
+                currentValue={currentPriceForChip}
+                onSelect={(v) => setPrice(v.replace('€', ''))}
+                testID="price-chips"
+              />
+            )}
           </View>
 
+          {/* Quantity field */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Quantity</Text>
             <QuantityPicker quantity={quantity} onChangeQuantity={setQuantity} />

@@ -20,4 +20,6 @@ export interface OcrResult {
   name: string;
   price: number | null;
   rawText: string;
+  nameCandidates: string[];
+  priceCandidates: number[];
 }
