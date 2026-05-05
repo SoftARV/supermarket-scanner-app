@@ -1,5 +1,5 @@
-import TextRecognition, { TextRecognitionResult } from '@react-native-ml-kit/text-recognition';
-import { OcrResult } from '@/types';
+import TextRecognition, { type TextRecognitionResult } from '@react-native-ml-kit/text-recognition';
+import { type OcrResult } from '@/types';
 
 // Per-unit suffixes that indicate a price-per-weight/volume, not the item price
 const PER_UNIT_PATTERN = /\s*[€£$]?\s*\/\s*(kg|l|lt|g|ml|u|ud|uni|unid|piece|pièce)/i;

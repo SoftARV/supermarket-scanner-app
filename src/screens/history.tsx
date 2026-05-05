@@ -1,12 +1,12 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useTheme, spacing, fontSizes, touchTarget, radius } from '@/theme';
-import { useAppContext } from '@/context/AppContext';
 import { TripCard } from '@/components/list/TripCard';
-import { RootStackParamList } from '@/types';
+import { useAppContext } from '@/context/AppContext';
+import { useTheme, spacing, fontSizes, touchTarget, radius } from '@/theme';
+import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'History'>;
 
@@ -24,7 +24,7 @@ export default function HistoryScreen() {
 
       <ScrollView contentContainerStyle={[styles.body, trips.length === 0 && styles.bodyEmpty]}>
         {trips.length === 0 ? (
-          <Text style={[styles.empty, { color: c.muted }]}>No trips yet.{'\n'}Tap "Start trip" to begin.</Text>
+          <Text style={[styles.empty, { color: c.muted }]}>No trips yet.{'\n'}Tap {'"'}Start trip{'"'} to begin.</Text>
         ) : (
           trips.map((trip) => (
             <TripCard

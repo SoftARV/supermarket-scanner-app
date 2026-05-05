@@ -1,13 +1,13 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
-import { useTheme, spacing, fontSizes, touchTarget, radius } from '@/theme';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TotalDisplay } from '@/components/ui/TotalDisplay';
 import { useAppContext } from '@/context/AppContext';
-import { RootStackParamList } from '@/types';
+import { useTheme, spacing, fontSizes, touchTarget, radius } from '@/theme';
+import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'FinishTrip'>;
 
@@ -35,7 +35,7 @@ export default function FinishTripScreen() {
           <Text style={[styles.back, { color: c.accent }]}>Back</Text>
         </TouchableOpacity>
         <Text style={[styles.title, { color: c.ink }]}>Trip summary</Text>
-        <View style={{ width: 52 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
@@ -91,7 +91,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
   },
-  back: { fontSize: fontSizes.bodyLg, fontWeight: '500', minWidth: 52 },
+  back: { fontSize: fontSizes.bodyLg, fontWeight: '500' },
+  headerSpacer: { width: 52 },
   title: { fontSize: fontSizes.title, fontWeight: '700' },
   body: { padding: spacing.md, gap: spacing.sm },
   totalCard: {

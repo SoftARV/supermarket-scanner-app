@@ -1,3 +1,6 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -10,12 +13,9 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import * as Haptics from 'expo-haptics';
-import { useTheme, spacing, fontSizes, touchTarget, radius } from '@/theme';
 import { useAppContext } from '@/context/AppContext';
-import { RootStackParamList } from '@/types';
+import { useTheme, spacing, fontSizes, touchTarget, radius } from '@/theme';
+import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'StartTrip'>;
 
@@ -54,7 +54,7 @@ export default function StartTripScreen() {
           <Text style={[styles.back, { color: c.accent }]}>Cancel</Text>
         </TouchableOpacity>
         <Text style={[styles.title, { color: c.ink }]}>New trip</Text>
-        <View style={{ width: 52 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       <View style={styles.form}>
@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   back: { fontSize: fontSizes.bodyLg, fontWeight: '500' },
+  headerSpacer: { width: 52 },
   title: { fontSize: fontSizes.title, fontWeight: '700' },
   form: { flex: 1, padding: spacing.md, gap: spacing.lg },
   field: { gap: spacing.xs },

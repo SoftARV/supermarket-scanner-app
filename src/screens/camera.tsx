@@ -1,7 +1,7 @@
-import * as Haptics from 'expo-haptics';
-import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Haptics from 'expo-haptics';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -20,10 +20,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CandidateChips } from '@/components/ui/CandidateChips';
 import { QuantityPicker } from '@/components/ui/QuantityPicker';
 import { SheetHandle } from '@/components/ui/SheetHandle';
-import { useTheme, fontSizes, spacing, touchTarget, radius } from '@/theme';
 import { useAppContext } from '@/context/AppContext';
 import { useOcrExtraction } from '@/hooks/useOcrExtraction';
-import { RootStackParamList } from '@/types';
+import { useTheme, fontSizes, spacing, touchTarget, radius } from '@/theme';
+import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Camera'>;
 
@@ -65,7 +65,7 @@ export default function CameraScreen() {
         }
       });
     }
-  }, [permission]);
+  }, [navigation, permission, requestPermission]);
 
   useEffect(() => {
     if (result) {
@@ -134,17 +134,18 @@ export default function CameraScreen() {
   if (!permission) return <View style={[styles.container, { backgroundColor: c.bg }]} />;
 
   return (
+    // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
     <View style={[styles.container, { backgroundColor: '#000' }]}>
       {/* ── Viewfinder ── */}
       <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
 
-      {/* Corner reticles */}
+      {/* Corner reticles — always white on camera black, regardless of theme */}
       {phase === 'viewfinder' && (
         <View style={styles.reticleContainer} pointerEvents="none">
-          <View style={[styles.corner, styles.topLeft, { borderColor: '#fff' }]} />
-          <View style={[styles.corner, styles.topRight, { borderColor: '#fff' }]} />
-          <View style={[styles.corner, styles.bottomLeft, { borderColor: '#fff' }]} />
-          <View style={[styles.corner, styles.bottomRight, { borderColor: '#fff' }]} />
+          <View style={[styles.corner, styles.topLeft, styles.reticleColor]} />
+          <View style={[styles.corner, styles.topRight, styles.reticleColor]} />
+          <View style={[styles.corner, styles.bottomLeft, styles.reticleColor]} />
+          <View style={[styles.corner, styles.bottomRight, styles.reticleColor]} />
         </View>
       )}
 
@@ -194,7 +195,7 @@ export default function CameraScreen() {
               )}
               {result && !result.name && result.price === null && (
                 <Text style={[styles.ocrNotice, { color: c.muted }]}>
-                  Couldn't read tag — please type manually
+                  Couldn&apos;t read tag — please type manually
                 </Text>
               )}
 
@@ -278,6 +279,14 @@ export default function CameraScreen() {
 const CORNER_SIZE = 24;
 const CORNER_THICKNESS = 3;
 
+// Camera viewfinder chrome is always white-on-black regardless of system theme.
+ 
+const CAMERA_WHITE = '#fff';
+ 
+const CAMERA_BTN_BG = 'rgba(0,0,0,0.45)';
+ 
+const SHUTTER_RING_BG = 'rgba(255,255,255,0.25)';
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
 
@@ -287,6 +296,7 @@ const styles = StyleSheet.create({
     margin: 48,
   },
   corner: { position: 'absolute', width: CORNER_SIZE, height: CORNER_SIZE },
+  reticleColor: { borderColor: CAMERA_WHITE },
   topLeft: { top: 0, left: 0, borderTopWidth: CORNER_THICKNESS, borderLeftWidth: CORNER_THICKNESS, borderTopLeftRadius: 4 },
   topRight: { top: 0, right: 0, borderTopWidth: CORNER_THICKNESS, borderRightWidth: CORNER_THICKNESS, borderTopRightRadius: 4 },
   bottomLeft: { bottom: 0, left: 0, borderBottomWidth: CORNER_THICKNESS, borderLeftWidth: CORNER_THICKNESS, borderBottomLeftRadius: 4 },
@@ -299,11 +309,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: CAMERA_BTN_BG,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  closeBtnText: { color: CAMERA_WHITE, fontSize: 16, fontWeight: '600' },
 
   // shutter
   shutterBar: {
@@ -318,17 +328,17 @@ const styles = StyleSheet.create({
     width: touchTarget.shutter,
     height: touchTarget.shutter,
     borderRadius: touchTarget.shutter / 2,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: SHUTTER_RING_BG,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#fff',
+    borderColor: CAMERA_WHITE,
   },
   shutterInner: {
     width: touchTarget.shutter - 20,
     height: touchTarget.shutter - 20,
     borderRadius: (touchTarget.shutter - 20) / 2,
-    backgroundColor: '#fff',
+    backgroundColor: CAMERA_WHITE,
   },
 
   // review sheet

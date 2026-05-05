@@ -1,22 +1,22 @@
-import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Haptics from 'expo-haptics';
 import React, { useCallback } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ShoppingList } from '@/components/list/ShoppingList';
 import { BudgetBar } from '@/components/ui/BudgetBar';
 import { LastAddedBadge } from '@/components/ui/LastAddedBadge';
-import { ShoppingList } from '@/components/list/ShoppingList';
 import { TotalDisplay } from '@/components/ui/TotalDisplay';
-import { useTheme, fontSizes, spacing, touchTarget, radius } from '@/theme';
 import { useAppContext } from '@/context/AppContext';
-import { RootStackParamList } from '@/types';
+import { useTheme, fontSizes, spacing, touchTarget, radius } from '@/theme';
+import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'ActiveList'>;
 
 export default function ActiveListScreen() {
   const c = useTheme();
-  const { activeTrip, removeItem, updateQuantity, discardTrip, finishTrip } = useAppContext();
+  const { activeTrip, removeItem, updateQuantity, discardTrip } = useAppContext();
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
 
@@ -60,7 +60,7 @@ export default function ActiveListScreen() {
             <Text style={[styles.headerAction, { color: c.accent }]}>Finish</Text>
           </TouchableOpacity>
         ) : (
-          <View style={{ width: 52 }} />
+          <View style={styles.headerSpacer} />
         )}
       </View>
 
@@ -121,4 +121,5 @@ const styles = StyleSheet.create({
   },
   fabIcon: { fontSize: 22 },
   fabLabel: { fontSize: fontSizes.title, fontWeight: '700' },
+  headerSpacer: { width: 52 },
 });

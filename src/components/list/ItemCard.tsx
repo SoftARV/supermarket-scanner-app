@@ -1,9 +1,9 @@
 import * as Haptics from 'expo-haptics';
 import React, { useCallback } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme, fontSizes, ITEM_HEIGHT, spacing } from '@/theme';
-import { ScannedItem } from '@/types';
 import { QuantityPicker } from '@/components/ui/QuantityPicker';
+import { useTheme, fontSizes, ITEM_HEIGHT, spacing } from '@/theme';
+import { type ScannedItem } from '@/types';
 
 interface Props {
   item: ScannedItem;

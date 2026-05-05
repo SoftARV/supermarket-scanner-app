@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { extractFromPriceTag } from '@/services/ocrService';
-import { OcrResult } from '@/types';
+import { type OcrResult } from '@/types';
 
 interface OcrState {
   result: OcrResult | null;

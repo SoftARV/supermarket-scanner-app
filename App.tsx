@@ -1,22 +1,20 @@
+import { Fraunces_500Medium, useFonts } from '@expo-google-fonts/fraunces';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Fraunces_500Medium, useFonts } from '@expo-google-fonts/fraunces';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { useColorScheme } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider } from '@/context/AppContext';
-import { darkColors, lightColors } from '@/theme';
-import { RootStackParamList } from '@/types';
-
-// Screens
-import HistoryScreen from '@/screens/history';
-import StartTripScreen from '@/screens/start-trip';
 import ActiveListScreen from '@/screens/active-list';
 import CameraScreen from '@/screens/camera';
 import FinishTripScreen from '@/screens/finish-trip';
+import HistoryScreen from '@/screens/history';
+import StartTripScreen from '@/screens/start-trip';
 import TripDetailScreen from '@/screens/trip-detail';
+import { darkColors, lightColors } from '@/theme';
+import { type RootStackParamList } from '@/types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -38,7 +36,7 @@ export default function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <AppProvider>
           <NavigationContainer theme={isDark ? DarkNavTheme : LightNavTheme}>
@@ -61,3 +59,7 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});

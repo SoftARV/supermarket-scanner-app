@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme, fontSizes, fonts, radius, spacing } from '@/theme';
-import { Trip } from '@/types';
+import { type Trip } from '@/types';
 
 interface Props {
   trip: Trip;

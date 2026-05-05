@@ -43,7 +43,8 @@ export const CandidateChips = React.memo(function CandidateChips({
               key={candidate}
               style={[
                 styles.chip,
-                { borderColor: c.accent, backgroundColor: isActive ? c.accent : 'transparent' },
+                { borderColor: c.accent },
+                isActive ? { backgroundColor: c.accent } : styles.chipInactive,
               ]}
               onPress={() => handlePress(candidate)}
               activeOpacity={0.7}
@@ -76,5 +77,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     maxWidth: 180,
   },
+  chipInactive: {},
   chipText: { fontSize: fontSizes.caption, fontWeight: '600' },
 });

@@ -1,12 +1,12 @@
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTheme, spacing, fontSizes, radius } from '@/theme';
 import { TotalDisplay } from '@/components/ui/TotalDisplay';
 import { useAppContext } from '@/context/AppContext';
-import { RootStackParamList } from '@/types';
+import { useTheme, spacing, fontSizes, radius } from '@/theme';
+import { type RootStackParamList } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TripDetail'>;
 type Nav = NativeStackNavigationProp<RootStackParamList, 'TripDetail'>;
@@ -41,7 +41,7 @@ export default function TripDetailScreen() {
           <Text style={[styles.back, { color: c.accent }]}>Back</Text>
         </TouchableOpacity>
         <Text style={[styles.title, { color: c.ink }]} numberOfLines={1}>{trip.store}</Text>
-        <View style={{ width: 52 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
@@ -84,7 +84,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
   },
-  back: { fontSize: fontSizes.bodyLg, fontWeight: '500', minWidth: 52 },
+  back: { fontSize: fontSizes.bodyLg, fontWeight: '500' },
+  headerSpacer: { width: 52 },
   title: { fontSize: fontSizes.title, fontWeight: '700', flex: 1, textAlign: 'center' },
   body: { padding: spacing.md, gap: spacing.sm },
   notFound: { textAlign: 'center', marginTop: spacing.xl, fontSize: fontSizes.body },
