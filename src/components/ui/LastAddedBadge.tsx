@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme, fontSizes, radius, spacing } from '../constants/theme';
-import { ScannedItem } from '../types';
+import { useTheme, fontSizes, radius, spacing } from '@/theme';
+import { ScannedItem } from '@/types';
 
 interface Props {
   item: ScannedItem;

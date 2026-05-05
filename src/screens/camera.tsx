@@ -17,13 +17,13 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CandidateChips } from '../components/CandidateChips';
-import { QuantityPicker } from '../components/QuantityPicker';
-import { SheetHandle } from '../components/SheetHandle';
-import { useTheme, fontSizes, spacing, touchTarget, radius } from '../constants/theme';
-import { useAppContext } from '../context/AppContext';
-import { useOcrExtraction } from '../hooks/useOcrExtraction';
-import { RootStackParamList } from '../types';
+import { CandidateChips } from '@/components/ui/CandidateChips';
+import { QuantityPicker } from '@/components/ui/QuantityPicker';
+import { SheetHandle } from '@/components/ui/SheetHandle';
+import { useTheme, fontSizes, spacing, touchTarget, radius } from '@/theme';
+import { useAppContext } from '@/context/AppContext';
+import { useOcrExtraction } from '@/hooks/useOcrExtraction';
+import { RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Camera'>;
 

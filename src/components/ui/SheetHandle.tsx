@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useTheme, spacing } from '../constants/theme';
+import { useTheme, spacing } from '@/theme';
 
 export function SheetHandle() {
   const c = useTheme();

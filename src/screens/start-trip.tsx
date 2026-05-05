@@ -13,9 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
-import { useTheme, spacing, fontSizes, touchTarget, radius } from '../constants/theme';
-import { useAppContext } from '../context/AppContext';
-import { RootStackParamList } from '../types';
+import { useTheme, spacing, fontSizes, touchTarget, radius } from '@/theme';
+import { useAppContext } from '@/context/AppContext';
+import { RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'StartTrip'>;
 

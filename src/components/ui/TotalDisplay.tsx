@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme, fonts, fontSizes } from '../constants/theme';
+import { useTheme, fonts, fontSizes } from '@/theme';
 
 interface Props {
   total: number;

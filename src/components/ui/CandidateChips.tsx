@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme, fontSizes, radius, spacing } from '../constants/theme';
+import { useTheme, fontSizes, radius, spacing } from '@/theme';
 
 interface Props {
   candidates: string[];

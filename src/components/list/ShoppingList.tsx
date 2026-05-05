@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { useTheme, fontSizes, ITEM_HEIGHT, spacing } from '../constants/theme';
-import { ScannedItem } from '../types';
-import { ItemCard } from './ItemCard';
+import { useTheme, fontSizes, ITEM_HEIGHT, spacing } from '@/theme';
+import { ScannedItem } from '@/types';
+import { ItemCard } from '@/components/list/ItemCard';
 
 interface Props {
   items: ScannedItem[];

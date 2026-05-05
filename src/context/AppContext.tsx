@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useReducer } from 'react';
-import { ScannedItem, Trip } from '../types';
+import { ScannedItem, Trip } from '@/types';
 
 // ─── State ────────────────────────────────────────────────────────
 interface AppState {

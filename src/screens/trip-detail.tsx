@@ -1,32 +1,38 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import * as Haptics from 'expo-haptics';
-import { useTheme, spacing, fontSizes, touchTarget, radius } from '../constants/theme';
-import { TotalDisplay } from '../components/TotalDisplay';
-import { useAppContext } from '../context/AppContext';
-import { RootStackParamList } from '../types';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTheme, spacing, fontSizes, radius } from '@/theme';
+import { TotalDisplay } from '@/components/ui/TotalDisplay';
+import { useAppContext } from '@/context/AppContext';
+import { RootStackParamList } from '@/types';
 
-type Nav = NativeStackNavigationProp<RootStackParamList, 'FinishTrip'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'TripDetail'>;
+type Nav = NativeStackNavigationProp<RootStackParamList, 'TripDetail'>;
 
-export default function FinishTripScreen() {
+export default function TripDetailScreen() {
   const c = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
-  const { activeTrip, finishTrip } = useAppContext();
+  const route = useRoute<Props['route']>();
+  const { trips } = useAppContext();
 
-  const items = activeTrip?.items ?? [];
-  const total = activeTrip?.total ?? 0;
-  const budget = activeTrip?.budget ?? null;
-  const overBudget = budget !== null && total > budget;
+  const trip = trips.find((t) => t.id === route.params.tripId);
 
-  const handleConfirm = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    finishTrip();
-    navigation.navigate('History');
-  };
+  if (!trip) {
+    return (
+      <View style={[styles.container, { backgroundColor: c.bg }]}>
+        <Text style={[styles.notFound, { color: c.muted }]}>Trip not found</Text>
+      </View>
+    );
+  }
+
+  const date = new Date(trip.createdAt).toLocaleDateString('es-ES', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
@@ -34,25 +40,23 @@ export default function FinishTripScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text style={[styles.back, { color: c.accent }]}>Back</Text>
         </TouchableOpacity>
-        <Text style={[styles.title, { color: c.ink }]}>Trip summary</Text>
+        <Text style={[styles.title, { color: c.ink }]} numberOfLines={1}>{trip.store}</Text>
         <View style={{ width: 52 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
         <View style={[styles.totalCard, { backgroundColor: c.surface, borderColor: c.hairline }]}>
-          <Text style={[styles.totalLabel, { color: c.muted }]}>Total spent</Text>
-          <TotalDisplay total={total} size="lg" />
-          {budget !== null && (
-            <Text style={[styles.budgetLine, { color: overBudget ? c.pop : c.muted }]}>
-              {overBudget
-                ? `€${(total - budget).toFixed(2)} over budget`
-                : `€${(budget - total).toFixed(2)} under budget`}
+          <Text style={[styles.dateText, { color: c.muted }]}>{date}</Text>
+          <TotalDisplay total={trip.total} size="lg" />
+          {trip.budget !== null && (
+            <Text style={[styles.budgetLine, { color: c.muted }]}>
+              Budget: €{trip.budget.toFixed(2)}
             </Text>
           )}
         </View>
 
-        <Text style={[styles.sectionLabel, { color: c.muted }]}>{items.length} items</Text>
-        {items.map((item) => (
+        <Text style={[styles.sectionLabel, { color: c.muted }]}>{trip.items.length} items</Text>
+        {trip.items.map((item) => (
           <View key={item.id} style={[styles.itemRow, { backgroundColor: c.surface, borderColor: c.hairline }]}>
             <View style={styles.itemInfo}>
               <Text style={[styles.itemName, { color: c.ink }]} numberOfLines={1}>{item.name}</Text>
@@ -66,17 +70,6 @@ export default function FinishTripScreen() {
           </View>
         ))}
       </ScrollView>
-
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: c.surface, borderTopColor: c.hairline }]}>
-        <TouchableOpacity
-          style={[styles.confirmBtn, { backgroundColor: c.accent }]}
-          onPress={handleConfirm}
-          accessibilityLabel="Save trip"
-          activeOpacity={0.85}
-        >
-          <Text style={[styles.confirmBtnLabel, { color: c.accentInk }]}>Save trip</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -92,8 +85,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   back: { fontSize: fontSizes.bodyLg, fontWeight: '500', minWidth: 52 },
-  title: { fontSize: fontSizes.title, fontWeight: '700' },
+  title: { fontSize: fontSizes.title, fontWeight: '700', flex: 1, textAlign: 'center' },
   body: { padding: spacing.md, gap: spacing.sm },
+  notFound: { textAlign: 'center', marginTop: spacing.xl, fontSize: fontSizes.body },
   totalCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
@@ -102,8 +96,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     gap: spacing.xs,
   },
-  totalLabel: { fontSize: fontSizes.body, fontWeight: '500' },
-  budgetLine: { fontSize: fontSizes.body, fontWeight: '500' },
+  dateText: { fontSize: fontSizes.caption },
+  budgetLine: { fontSize: fontSizes.body },
   sectionLabel: {
     fontSize: fontSizes.caption,
     fontWeight: '600',
@@ -123,12 +117,4 @@ const styles = StyleSheet.create({
   itemName: { fontSize: fontSizes.bodyLg, fontWeight: '600' },
   itemMeta: { fontSize: fontSizes.caption },
   itemTotal: { fontSize: fontSizes.bodyLg, fontWeight: '700', marginLeft: spacing.sm },
-  footer: { padding: spacing.md, borderTopWidth: 1 },
-  confirmBtn: {
-    height: touchTarget.fab,
-    borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmBtnLabel: { fontSize: fontSizes.title, fontWeight: '700' },
 });

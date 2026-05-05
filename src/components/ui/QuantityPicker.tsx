@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme, fontSizes, radius, spacing, touchTarget } from '../constants/theme';
+import { useTheme, fontSizes, radius, spacing, touchTarget } from '@/theme';
 
 interface Props {
   quantity: number;

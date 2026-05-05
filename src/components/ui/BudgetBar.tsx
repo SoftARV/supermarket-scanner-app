@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme, fontSizes, radius, spacing } from '../constants/theme';
+import { useTheme, fontSizes, radius, spacing } from '@/theme';
 
 interface Props {
   spent: number;

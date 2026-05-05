@@ -4,13 +4,13 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BudgetBar } from '../components/BudgetBar';
-import { LastAddedBadge } from '../components/LastAddedBadge';
-import { ShoppingList } from '../components/ShoppingList';
-import { TotalDisplay } from '../components/TotalDisplay';
-import { useTheme, fontSizes, spacing, touchTarget, radius } from '../constants/theme';
-import { useAppContext } from '../context/AppContext';
-import { RootStackParamList } from '../types';
+import { BudgetBar } from '@/components/ui/BudgetBar';
+import { LastAddedBadge } from '@/components/ui/LastAddedBadge';
+import { ShoppingList } from '@/components/list/ShoppingList';
+import { TotalDisplay } from '@/components/ui/TotalDisplay';
+import { useTheme, fontSizes, spacing, touchTarget, radius } from '@/theme';
+import { useAppContext } from '@/context/AppContext';
+import { RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'ActiveList'>;
 

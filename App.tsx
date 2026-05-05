@@ -6,21 +6,20 @@ import React from 'react';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AppProvider } from './context/AppContext';
-import { darkColors, lightColors } from './constants/theme';
-import { RootStackParamList } from './types';
+import { AppProvider } from '@/context/AppContext';
+import { darkColors, lightColors } from '@/theme';
+import { RootStackParamList } from '@/types';
 
 // Screens
-import HistoryScreen from './app/history';
-import StartTripScreen from './app/start-trip';
-import ActiveListScreen from './app/active-list';
-import CameraScreen from './app/camera';
-import FinishTripScreen from './app/finish-trip';
-import TripDetailScreen from './app/trip-detail';
+import HistoryScreen from '@/screens/history';
+import StartTripScreen from '@/screens/start-trip';
+import ActiveListScreen from '@/screens/active-list';
+import CameraScreen from '@/screens/camera';
+import FinishTripScreen from '@/screens/finish-trip';
+import TripDetailScreen from '@/screens/trip-detail';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// Wire React Navigation's theme to our palette so transition backgrounds match
 const LightNavTheme = {
   ...DefaultTheme,
   colors: { ...DefaultTheme.colors, background: lightColors.bg, card: lightColors.surface, border: lightColors.hairline, text: lightColors.ink, primary: lightColors.accent, notification: lightColors.pop },
