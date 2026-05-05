@@ -10,16 +10,20 @@ added to a running shopping list with a live total.
 
 ## Tech Stack
 
-- **Framework:** React Native with Expo (SDK 52+)
+- **Framework:** React Native with Expo SDK 54 (New Architecture enabled — `newArchEnabled: true`)
 - **Language:** TypeScript (strict mode)
 - **Camera / Image Picker:** expo-image-picker
 - **OCR (on-device, offline):** @react-native-ml-kit/text-recognition
-- **Navigation:** React Navigation (Stack)
+- **Navigation:** React Navigation (Stack) + react-native-gesture-handler
+- **Animations:** react-native-reanimated (swipe-to-delete, item transitions)
+- **Haptics:** expo-haptics (confirm add, error, destructive feedback)
 - **State:** React Context + useReducer (no external state library needed)
 - **Styling:** StyleSheet API (no Tailwind — keep it native)
 
 > ⚠️ ML Kit requires a **development build** — it will NOT work in Expo Go.
 > Always run with `npx expo run:android` or `npx expo run:ios`.
+>
+> ⚠️ Android has `edgeToEdgeEnabled: true` — always wrap screens in `<SafeAreaView>` or use `useSafeAreaInsets`.
 
 ## Installation
 
@@ -27,10 +31,11 @@ added to a running shopping list with a live total.
 npx create-expo-app@latest supermarket-scanner --template blank-typescript
 cd supermarket-scanner
 
-npx expo install expo-image-picker expo-file-system
+npx expo install expo-image-picker expo-file-system expo-haptics
 npm install @react-native-ml-kit/text-recognition
 npm install @react-navigation/native @react-navigation/stack
 npx expo install react-native-screens react-native-safe-area-context
+npx expo install react-native-reanimated react-native-gesture-handler
 
 # Build and run on device (required for ML Kit)
 npx expo run:android   # or run:ios
@@ -44,18 +49,30 @@ supermarket-scanner/
 │   ├── index.tsx               # Shopping list (home screen)
 │   └── scanner.tsx             # Camera + OCR extraction screen
 ├── components/
-│   ├── ShoppingList.tsx        # Renders list items with totals
-│   ├── ItemCard.tsx            # Single list item row
+│   ├── ShoppingList.tsx        # FlatList with all perf optimizations
+│   ├── ItemCard.tsx            # Single list item row (React.memo)
 │   └── QuantityPicker.tsx      # +/- quantity control
+├── constants/
+│   └── theme.ts                # Colors, spacing, typography tokens
 ├── context/
 │   └── ShoppingContext.tsx     # Global state: items[], total
+├── hooks/
+│   └── useOcrExtraction.ts     # OCR + parsing logic, loading/error state
 ├── services/
 │   └── ocrService.ts           # ML Kit OCR + price/name parsing logic
 ├── types/
 │   └── index.ts                # Shared TypeScript interfaces
+├── App.tsx                     # NavigationContainer + Stack + ShoppingProvider
 ├── CLAUDE.md
 └── app.json
 ```
+
+### Why these additions?
+
+- **`constants/theme.ts`** — Single source of truth for colors, spacing, and font sizes. Supermarket context needs high-contrast, large-target UI; hardcoding values across files makes that impossible to maintain.
+- **`hooks/useOcrExtraction.ts`** — Extracts the async loading/error state machine out of `scanner.tsx`, keeping the screen under 150 lines and making the OCR logic independently testable.
+- **`react-native-reanimated`** — Required for swipe-to-delete on `ItemCard`. Native-thread animations (no JS jank), and gesture-handler integration for the swipe gesture.
+- **`expo-haptics`** — Haptic feedback on "Add to list" (success), validation errors, and "Clear list" (warning). Critical for premium feel and supermarket environment where users may not be looking at the screen.
 
 ## Core Data Types
 
@@ -151,6 +168,43 @@ type Action =
 - Compute `total` inside the reducer (sum of pricePerUnit × quantity for all items)
 - Wrap the app in `<ShoppingProvider>` in the root layout
 - Export a `useShoppingContext()` hook — throw if used outside the provider
+
+## Theme Constants (constants/theme.ts)
+
+```typescript
+export const colors = {
+  primary: '#1A7F37',       // Green — scan/add action
+  danger: '#C0392B',        // Red — delete/clear
+  background: '#F5F5F5',    // Off-white — easy on eyes in bright light
+  surface: '#FFFFFF',
+  textPrimary: '#111111',   // High contrast for bright supermarket lighting
+  textSecondary: '#555555',
+  border: '#E0E0E0',
+  total: '#1A7F37',         // Total price = prominent green
+};
+
+export const spacing = {
+  xs: 4, sm: 8, md: 16, lg: 24, xl: 32,
+};
+
+export const fontSizes = {
+  body: 16, title: 20, large: 24, price: 28,
+};
+
+export const touchTarget = {
+  min: 48,   // 48dp Android / 44pt iOS minimum
+  fab: 64,   // FAB must be generous — user holds phone one-handed in supermarket
+};
+```
+
+## Performance Conventions
+
+- **`ItemCard` must be wrapped in `React.memo`** — list re-renders on every ADD/REMOVE/UPDATE
+- **`renderItem` in `ShoppingList` must use `useCallback`** — prevents function recreation on every render
+- **`keyExtractor` must use `item.id`** — never use array index; items can be deleted mid-list
+- **`getItemLayout` must be provided** — item height is fixed; skip async layout calculation
+- **All animations must use `useNativeDriver: true`** or Reanimated — JS-thread animation in a list = jank
+- **`useOcrExtraction` must not set state after unmount** — user may navigate back while OCR runs
 
 ## Coding Conventions
 

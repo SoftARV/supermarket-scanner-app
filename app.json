@@ -13,7 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Used to scan supermarket price tags",
+        "NSPhotoLibraryUsageDescription": "Used to select price tag photos from your library"
+      }
     },
     "android": {
       "adaptiveIcon": {
