@@ -1,18 +1,23 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Fraunces_500Medium, useFonts } from '@expo-google-fonts/fraunces';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './app/index';
 import ScannerScreen from './app/scanner';
-import { colors } from './constants/theme';
+import { lightColors } from './constants/theme';
 import { ShoppingProvider } from './context/ShoppingContext';
 import { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
+  const [fontsLoaded] = useFonts({ Fraunces_500Medium });
+
+  if (!fontsLoaded) return null;
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -31,8 +36,8 @@ export default function App() {
                 options={{
                   title: 'Scan price tag',
                   headerBackTitle: 'Back',
-                  headerTintColor: colors.primary,
-                  headerStyle: { backgroundColor: colors.surface },
+                  headerTintColor: lightColors.accent,
+                  headerStyle: { backgroundColor: lightColors.surface },
                   headerShadowVisible: false,
                 }}
               />

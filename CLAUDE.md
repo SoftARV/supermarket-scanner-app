@@ -8,6 +8,72 @@ item name and price using on-device OCR (ML Kit — no internet, no cost), the u
 reviews and optionally corrects the extracted data, sets a quantity, and the item is
 added to a running shopping list with a live total.
 
+## Design System — Mono + Ice (hi-fi mock, May 2026)
+
+The app uses the **Mono + Ice** palette with **Inter Tight** for UI text and **Fraunces** (serif) exclusively for totals and prices. Full light + dark mode support driven by system preference.
+
+### Palette tokens
+
+```typescript
+// light
+bg: '#f5f7fa'        surface: '#ffffff'       surface2: '#eef2f7'
+ink: '#0a0a0a'       muted: '#71717a'          hairline: 'rgba(0,0,0,0.08)'
+accent: '#3b82f6'    accentInk: '#ffffff'      accentSoft: '#dbeafe'
+pop: '#fb7185'
+
+// dark
+bg: '#0a0a0a'        surface: '#161618'        surface2: '#1d1d20'
+ink: '#fafafa'       muted: '#a1a1aa'          hairline: 'rgba(255,255,255,0.08)'
+accent: '#7dd3fc'    accentInk: '#0a0a0a'      accentSoft: 'rgba(125,211,252,0.15)'
+pop: '#fda4af'
+```
+
+### Typography rules
+- **Inter Tight** — all UI labels, captions, buttons, body text
+- **Fraunces** (serif, variable) — ONLY `TotalDisplay` and item price values; gives money real visual weight
+- Total display: `€` symbol small + muted, integer large + ink, `.cents` small + muted
+
+### Shape language
+- Large radii: cards `16-22px`, buttons `999px` (pills), icons `12px`
+- Surface cards with `1px solid hairline` borders (no heavy shadows)
+- Bottom sheets: `borderTopLeftRadius: 28`, `borderTopRightRadius: 28`, `36×4` drag handle
+
+### Complete screen flow (11 artboards)
+
+```
+① History → ② Start trip → ③ Active list (empty)
+→ ④ Camera viewfinder → ⑤ Review sheet (bottom sheet)
+→ ⑥ Active list (1 item) → ⑦ Active list (growing)
+→ ⑧ Active list (full) → ⑨ Finish trip summary
+→ ⑩ History (trip saved) → ⑪ Trip detail (read-only)
+```
+
+### New screens vs original
+| Screen | Status |
+|---|---|
+| History (trips list + Start button) | New — becomes app root |
+| Start trip (store name + budget) | New |
+| Active list | Updated — gains header nav, budget bar, last-added badge |
+| Camera viewfinder | New — live feed, corner reticles, total chip overlay |
+| Review sheet | Updated — bottom sheet over frozen camera frame |
+| Finish trip summary | New |
+| Trip detail (read-only) | New |
+
+### Trip data model
+```typescript
+interface Trip {
+  id: string;
+  store: string;
+  budget: number | null;   // null = no budget set
+  items: ScannedItem[];
+  total: number;
+  createdAt: number;       // epoch ms
+  completedAt?: number;    // undefined = still active
+}
+```
+
+---
+
 ## Tech Stack
 
 - **Framework:** React Native with Expo SDK 54 (New Architecture enabled — `newArchEnabled: true`)
