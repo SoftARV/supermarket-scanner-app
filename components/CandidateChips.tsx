@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors, fontSizes, spacing } from '../constants/theme';
+import { useTheme, fontSizes, radius, spacing } from '../constants/theme';
 
 interface Props {
   candidates: string[];
@@ -16,6 +16,8 @@ export const CandidateChips = React.memo(function CandidateChips({
   onSelect,
   testID,
 }: Props) {
+  const c = useTheme();
+
   const handlePress = useCallback(
     (value: string) => {
       Haptics.selectionAsync();
@@ -39,12 +41,15 @@ export const CandidateChips = React.memo(function CandidateChips({
           return (
             <TouchableOpacity
               key={candidate}
-              style={[styles.chip, isActive && styles.chipActive]}
+              style={[
+                styles.chip,
+                { borderColor: c.accent, backgroundColor: isActive ? c.accent : 'transparent' },
+              ]}
               onPress={() => handlePress(candidate)}
               activeOpacity={0.7}
             >
               <Text
-                style={[styles.chipText, isActive && styles.chipTextActive]}
+                style={[styles.chipText, { color: isActive ? c.accentInk : c.accent }]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
@@ -59,36 +64,17 @@ export const CandidateChips = React.memo(function CandidateChips({
 });
 
 const styles = StyleSheet.create({
-  wrapper: {
-    marginTop: spacing.xs,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: 2,
-    paddingVertical: 2,
-  },
+  wrapper: { marginTop: spacing.xs },
+  row: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: 2, paddingVertical: 2 },
   chip: {
     minHeight: 48,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: 24,
+    borderRadius: radius.full,
     borderWidth: 1.5,
-    borderColor: colors.primary,
-    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     maxWidth: 180,
   },
-  chipActive: {
-    backgroundColor: colors.primary,
-  },
-  chipText: {
-    fontSize: fontSizes.caption,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  chipTextActive: {
-    color: colors.surface,
-  },
+  chipText: { fontSize: fontSizes.caption, fontWeight: '600' },
 });

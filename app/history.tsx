@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme, spacing, fontSizes, touchTarget, radius } from '../constants/theme';
 import { useAppContext } from '../context/AppContext';
+import { TripCard } from '../components/TripCard';
 import { RootStackParamList } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'History'>;
@@ -21,22 +22,19 @@ export default function HistoryScreen() {
         <Text style={[styles.title, { color: c.ink }]}>Trips</Text>
       </View>
 
-      <View style={styles.body}>
+      <ScrollView contentContainerStyle={[styles.body, trips.length === 0 && styles.bodyEmpty]}>
         {trips.length === 0 ? (
-          <Text style={[styles.empty, { color: c.muted }]}>No trips yet</Text>
+          <Text style={[styles.empty, { color: c.muted }]}>No trips yet.{'\n'}Tap "Start trip" to begin.</Text>
         ) : (
           trips.map((trip) => (
-            <TouchableOpacity
+            <TripCard
               key={trip.id}
-              style={[styles.tripRow, { backgroundColor: c.surface, borderColor: c.hairline }]}
+              trip={trip}
               onPress={() => navigation.navigate('TripDetail', { tripId: trip.id })}
-            >
-              <Text style={[styles.tripStore, { color: c.ink }]}>{trip.store}</Text>
-              <Text style={[styles.tripTotal, { color: c.accent }]}>€{trip.total.toFixed(2)}</Text>
-            </TouchableOpacity>
+            />
           ))
         )}
-      </View>
+      </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: c.surface, borderTopColor: c.hairline }]}>
         <TouchableOpacity
@@ -60,18 +58,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   title: { fontSize: fontSizes.large, fontWeight: '700' },
-  body: { flex: 1, padding: spacing.md, gap: spacing.sm },
-  empty: { fontSize: fontSizes.body, textAlign: 'center', marginTop: spacing.xl },
-  tripRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-  },
-  tripStore: { fontSize: fontSizes.bodyLg, fontWeight: '600' },
-  tripTotal: { fontSize: fontSizes.bodyLg, fontWeight: '700' },
+  body: { padding: spacing.md, gap: spacing.sm },
+  bodyEmpty: { flex: 1, justifyContent: 'center' },
+  empty: { fontSize: fontSizes.body, textAlign: 'center', lineHeight: 24 },
   footer: {
     padding: spacing.md,
     borderTopWidth: 1,

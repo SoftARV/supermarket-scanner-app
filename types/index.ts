@@ -5,9 +5,6 @@ export type RootStackParamList = {
   Camera: undefined;
   FinishTrip: undefined;
   TripDetail: { tripId: string };
-  // legacy screens — replaced in Phase 5
-  Home: undefined;
-  Scanner: undefined;
 };
 
 export interface ScannedItem {

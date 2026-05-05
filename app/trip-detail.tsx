@@ -3,7 +3,8 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTheme, spacing, fontSizes, radius, fonts } from '../constants/theme';
+import { useTheme, spacing, fontSizes, radius } from '../constants/theme';
+import { TotalDisplay } from '../components/TotalDisplay';
 import { useAppContext } from '../context/AppContext';
 import { RootStackParamList } from '../types';
 
@@ -46,9 +47,7 @@ export default function TripDetailScreen() {
       <ScrollView contentContainerStyle={styles.body}>
         <View style={[styles.totalCard, { backgroundColor: c.surface, borderColor: c.hairline }]}>
           <Text style={[styles.dateText, { color: c.muted }]}>{date}</Text>
-          <Text style={[styles.totalAmount, { color: c.ink, fontFamily: fonts.serif }]}>
-            €{trip.total.toFixed(2)}
-          </Text>
+          <TotalDisplay total={trip.total} size="lg" />
           {trip.budget !== null && (
             <Text style={[styles.budgetLine, { color: c.muted }]}>
               Budget: €{trip.budget.toFixed(2)}
@@ -98,7 +97,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   dateText: { fontSize: fontSizes.caption },
-  totalAmount: { fontSize: fontSizes.hero, fontWeight: '500' },
   budgetLine: { fontSize: fontSizes.body },
   sectionLabel: {
     fontSize: fontSizes.caption,

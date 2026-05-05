@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CandidateChips } from '../components/CandidateChips';
 import { QuantityPicker } from '../components/QuantityPicker';
+import { SheetHandle } from '../components/SheetHandle';
 import { useTheme, fontSizes, spacing, touchTarget, radius } from '../constants/theme';
 import { useAppContext } from '../context/AppContext';
 import { useOcrExtraction } from '../hooks/useOcrExtraction';
@@ -176,10 +177,7 @@ export default function CameraScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={[styles.sheet, { backgroundColor: c.surface }]}>
-            {/* Drag handle */}
-            <View style={styles.handleRow}>
-              <View style={[styles.handle, { backgroundColor: c.hairline }]} />
-            </View>
+            <SheetHandle />
 
             <ScrollView
               contentContainerStyle={[styles.sheetScroll, { paddingBottom: insets.bottom + spacing.xl }]}
@@ -336,8 +334,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.sheet,
     maxHeight: '85%',
   },
-  handleRow: { alignItems: 'center', paddingTop: spacing.sm },
-  handle: { width: 36, height: 4, borderRadius: 2 },
   sheetScroll: { padding: spacing.md, gap: spacing.md },
 
   loadingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

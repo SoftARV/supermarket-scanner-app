@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
-import { useTheme, spacing, fontSizes, touchTarget, radius, fonts } from '../constants/theme';
+import { useTheme, spacing, fontSizes, touchTarget, radius } from '../constants/theme';
+import { TotalDisplay } from '../components/TotalDisplay';
 import { useAppContext } from '../context/AppContext';
 import { RootStackParamList } from '../types';
 
@@ -40,9 +41,7 @@ export default function FinishTripScreen() {
       <ScrollView contentContainerStyle={styles.body}>
         <View style={[styles.totalCard, { backgroundColor: c.surface, borderColor: c.hairline }]}>
           <Text style={[styles.totalLabel, { color: c.muted }]}>Total spent</Text>
-          <Text style={[styles.totalAmount, { color: c.ink, fontFamily: fonts.serif }]}>
-            €{total.toFixed(2)}
-          </Text>
+          <TotalDisplay total={total} size="lg" />
           {budget !== null && (
             <Text style={[styles.budgetLine, { color: overBudget ? c.pop : c.muted }]}>
               {overBudget
@@ -104,7 +103,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   totalLabel: { fontSize: fontSizes.body, fontWeight: '500' },
-  totalAmount: { fontSize: fontSizes.hero, fontWeight: '500' },
   budgetLine: { fontSize: fontSizes.body, fontWeight: '500' },
   sectionLabel: {
     fontSize: fontSizes.caption,

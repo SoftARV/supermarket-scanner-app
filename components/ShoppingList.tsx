@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { colors, fontSizes, ITEM_HEIGHT, spacing } from '../constants/theme';
+import { useTheme, fontSizes, ITEM_HEIGHT, spacing } from '../constants/theme';
 import { ScannedItem } from '../types';
 import { ItemCard } from './ItemCard';
 
@@ -11,11 +11,12 @@ interface Props {
 }
 
 const EmptyState = React.memo(function EmptyState() {
+  const c = useTheme();
   return (
     <View style={styles.empty}>
       <Text style={styles.emptyIcon}>🛒</Text>
-      <Text style={styles.emptyTitle}>Your basket is empty</Text>
-      <Text style={styles.emptySubtitle}>Tap the scan button to add items</Text>
+      <Text style={[styles.emptyTitle, { color: c.ink }]}>Your basket is empty</Text>
+      <Text style={[styles.emptySubtitle, { color: c.muted }]}>Tap the scan button to add items</Text>
     </View>
   );
 });
@@ -60,9 +61,7 @@ export const ShoppingList = React.memo(function ShoppingList({
 });
 
 const styles = StyleSheet.create({
-  emptyContainer: {
-    flex: 1,
-  },
+  emptyContainer: { flex: 1 },
   empty: {
     flex: 1,
     alignItems: 'center',
@@ -70,17 +69,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     padding: spacing.xl,
   },
-  emptyIcon: {
-    fontSize: 64,
-  },
-  emptyTitle: {
-    fontSize: fontSizes.title,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  emptySubtitle: {
-    fontSize: fontSizes.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
+  emptyIcon: { fontSize: 64 },
+  emptyTitle: { fontSize: fontSizes.title, fontWeight: '700' },
+  emptySubtitle: { fontSize: fontSizes.body, textAlign: 'center' },
 });

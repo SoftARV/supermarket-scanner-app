@@ -4,7 +4,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BudgetBar } from '../components/BudgetBar';
+import { LastAddedBadge } from '../components/LastAddedBadge';
 import { ShoppingList } from '../components/ShoppingList';
+import { TotalDisplay } from '../components/TotalDisplay';
 import { useTheme, fontSizes, spacing, touchTarget, radius } from '../constants/theme';
 import { useAppContext } from '../context/AppContext';
 import { RootStackParamList } from '../types';
@@ -64,9 +67,15 @@ export default function ActiveListScreen() {
       <ShoppingList items={items} onRemove={removeItem} onUpdateQuantity={updateQuantity} />
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: c.surface, borderTopColor: c.hairline }]}>
+        {items.length > 0 && (
+          <LastAddedBadge item={items[items.length - 1]} />
+        )}
+        {activeTrip?.budget != null && (
+          <BudgetBar spent={total} budget={activeTrip.budget} />
+        )}
         <View style={styles.totalRow}>
           <Text style={[styles.totalLabel, { color: c.muted }]}>Total</Text>
-          <Text style={[styles.totalAmount, { color: c.accent }]}>€{total.toFixed(2)}</Text>
+          <TotalDisplay total={total} size="md" />
         </View>
         <TouchableOpacity
           style={[styles.fab, { backgroundColor: c.accent }]}
@@ -102,7 +111,6 @@ const styles = StyleSheet.create({
   },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   totalLabel: { fontSize: fontSizes.title, fontWeight: '600' },
-  totalAmount: { fontSize: fontSizes.price, fontWeight: '800' },
   fab: {
     height: touchTarget.fab,
     borderRadius: radius.full,
