@@ -1,23 +1,69 @@
 import TextRecognition, { TextRecognitionResult } from '@react-native-ml-kit/text-recognition';
 import { OcrResult } from '../types';
 
-function parsePriceAll(text: string): number[] {
-  const matches = text.match(/\d+[.,]\d{2}/g);
-  if (!matches || matches.length === 0) return [];
+// Per-unit suffixes that indicate a price-per-weight/volume, not the item price
+const PER_UNIT_PATTERN = /\s*[€£$]?\s*\/\s*(kg|l|lt|g|ml|u|ud|uni|unid|piece|pièce)/i;
 
-  // Deduplicate by normalised toFixed(2) string to avoid float collisions
+interface PriceMatch {
+  value: number;
+  endIndex: number;
+}
+
+function collectPriceMatches(text: string): PriceMatch[] {
+  const results: PriceMatch[] = [];
+
+  // Pattern 1: standard decimal — "1.99" or "1,99"
+  const decimalRe = /\d+[.,]\d{2}/g;
+  let m: RegExpExecArray | null;
+  while ((m = decimalRe.exec(text)) !== null) {
+    results.push({
+      value: parseFloat(m[0].replace(',', '.')),
+      endIndex: m.index + m[0].length,
+    });
+  }
+
+  // Pattern 2: split-euro — "1 € 89", "1€89", "1 €89", "1€ 89"
+  // Matches integer euros, optional spaces, euro/pound/dollar sign, optional spaces, two-digit cents
+  // Negative lookahead (?!\d) prevents matching inside longer numbers
+  const splitRe = /(\d+)\s*[€£$]\s*(\d{2})(?!\d)/g;
+  while ((m = splitRe.exec(text)) !== null) {
+    const euros = parseInt(m[1], 10);
+    const cents = parseInt(m[2], 10);
+    results.push({
+      value: euros + cents / 100,
+      endIndex: m.index + m[0].length,
+    });
+  }
+
+  return results;
+}
+
+function isPerUnitPrice(text: string, endIndex: number): boolean {
+  // Check the 15 characters immediately after the match for per-unit indicators
+  const window = text.slice(endIndex, endIndex + 15);
+  return PER_UNIT_PATTERN.test(window);
+}
+
+function parsePriceAll(text: string): number[] {
+  const matches = collectPriceMatches(text);
+
+  // Filter out per-unit prices (€/kg, €/l, etc.)
+  const itemPrices = matches.filter((m) => !isPerUnitPrice(text, m.endIndex));
+
+  // Deduplicate by toFixed(2) string to avoid float collisions
   const seen = new Set<string>();
   const unique: number[] = [];
-  for (const m of matches) {
-    const val = parseFloat(m.replace(',', '.'));
-    const key = val.toFixed(2);
+  for (const { value } of itemPrices) {
+    const key = value.toFixed(2);
     if (!seen.has(key)) {
       seen.add(key);
-      unique.push(val);
+      unique.push(value);
     }
   }
 
-  return unique.sort((a, b) => b - a);
+  // Smallest first — item prices are almost always lower than per-kg/per-l prices.
+  // After filtering, the smallest surviving candidate is typically the shelf price.
+  return unique.sort((a, b) => a - b);
 }
 
 function parseNameAll(blocks: TextRecognitionResult['blocks']): string[] {
