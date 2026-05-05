@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,6 +24,9 @@ export default function StartTripScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const { startTrip } = useAppContext();
+
+  const scheme = useColorScheme();
+  const keyboardAppearance = scheme === 'dark' ? 'dark' : 'light';
 
   const [store, setStore] = useState('');
   const [budgetText, setBudgetText] = useState('');
@@ -63,6 +67,7 @@ export default function StartTripScreen() {
             value={store}
             onChangeText={(t) => { setStore(t); setStoreError(false); }}
             returnKeyType="next"
+            keyboardAppearance={keyboardAppearance}
             autoFocus
           />
           {storeError && (
@@ -80,6 +85,7 @@ export default function StartTripScreen() {
             onChangeText={setBudgetText}
             keyboardType="decimal-pad"
             returnKeyType="done"
+            keyboardAppearance={keyboardAppearance}
             onSubmitEditing={handleStart}
           />
         </View>

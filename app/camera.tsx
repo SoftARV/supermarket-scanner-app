@@ -13,6 +13,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,6 +37,7 @@ export default function CameraScreen() {
   const { extract, result, loading, reset } = useOcrExtraction();
 
   const [permission, requestPermission] = useCameraPermissions();
+  const keyboardAppearance = useColorScheme() === 'dark' ? 'dark' : 'light';
   const cameraRef = useRef<CameraView>(null);
 
   const [phase, setPhase] = useState<Phase>('viewfinder');
@@ -207,6 +209,7 @@ export default function CameraScreen() {
                   placeholder="e.g. Leche entera"
                   placeholderTextColor={c.muted}
                   returnKeyType="next"
+                  keyboardAppearance={keyboardAppearance}
                   onSubmitEditing={() => priceRef.current?.focus()}
                   autoCapitalize="words"
                 />
@@ -233,6 +236,7 @@ export default function CameraScreen() {
                   placeholderTextColor={c.muted}
                   keyboardType="decimal-pad"
                   returnKeyType="done"
+                  keyboardAppearance={keyboardAppearance}
                 />
                 {!priceEdited && (
                   <CandidateChips
