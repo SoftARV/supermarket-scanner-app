@@ -14,6 +14,7 @@
     },
     "ios": {
       "supportsTablet": false,
+      "deploymentTarget": "13.0",
       "infoPlist": {
         "NSCameraUsageDescription": "Used to scan supermarket price tags",
         "NSPhotoLibraryUsageDescription": "Used to select price tag photos from your library"
