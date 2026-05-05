@@ -14,7 +14,6 @@
     },
     "ios": {
       "supportsTablet": false,
-      "deploymentTarget": "13.0",
       "infoPlist": {
         "NSCameraUsageDescription": "Used to scan supermarket price tags",
         "NSPhotoLibraryUsageDescription": "Used to select price tag photos from your library"
@@ -30,6 +29,16 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
+        }
+      ]
+    ]
   }
 }
