@@ -8,7 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './app/index';
 import ScannerScreen from './app/scanner';
 import { lightColors } from './constants/theme';
-import { ShoppingProvider } from './context/ShoppingContext';
+import { AppProvider } from './context/AppContext';
 import { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -21,7 +21,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ShoppingProvider>
+        <AppProvider>
           <NavigationContainer>
             <StatusBar style="dark" />
             <Stack.Navigator>
@@ -43,7 +43,7 @@ export default function App() {
               />
             </Stack.Navigator>
           </NavigationContainer>
-        </ShoppingProvider>
+        </AppProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
