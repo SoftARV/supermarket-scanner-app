@@ -121,8 +121,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md - 2,
-    paddingBottom: spacing.xs,
-    height: 56 + spacing.xs,
+    paddingBottom: spacing.sm,
   },
   navLeft: {
     flexDirection: 'row',

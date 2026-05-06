@@ -31,9 +31,9 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'Camera'>;
 type Phase = 'viewfinder' | 'review';
 
 const CAMERA_WHITE = '#fff';
-const CAMERA_BTN_BG = 'rgba(255,255,255,0.16)';
-const SHUTTER_RING_BG = 'rgba(255,255,255,0.25)';
-const HINT_BG = 'rgba(0,0,0,0.4)';
+const CAMERA_BTN_BG = 'rgba(0,0,0,0.52)';
+const SHUTTER_RING_BG = 'rgba(255,255,255,0.22)';
+const HINT_BG = 'rgba(0,0,0,0.58)';
 
 export default function CameraScreen() {
   const c = useTheme();
