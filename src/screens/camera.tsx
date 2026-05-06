@@ -1,27 +1,15 @@
-import BottomSheet, { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import { X, Zap } from 'lucide-react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  type TextInput,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CandidateChips } from '@/components/ui/CandidateChips';
-import { QuantityPicker } from '@/components/ui/QuantityPicker';
+import { ReviewSheet } from '@/components/ui/ReviewSheet';
 import { useAppContext } from '@/context/AppContext';
 import { useOcrExtraction } from '@/hooks/useOcrExtraction';
-import { useTheme, fontSizes, fonts, spacing, touchTarget, radius } from '@/theme';
+import { useTheme, fonts, spacing, touchTarget } from '@/theme';
 import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Camera'>;
@@ -40,23 +28,11 @@ export default function CameraScreen() {
   const { extract, result, loading, reset } = useOcrExtraction();
 
   const [permission, requestPermission] = useCameraPermissions();
-  const keyboardAppearance = useColorScheme() === 'dark' ? 'dark' : 'light';
   const cameraRef = useRef<CameraView>(null);
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['62%', '90%'], []);
 
   const [phase, setPhase] = useState<Phase>('viewfinder');
   const [flashMode, setFlashMode] = useState<'on' | 'off'>('off');
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [nameError, setNameError] = useState('');
-  const [nameEdited, setNameEdited] = useState(false);
-  const [priceEdited, setPriceEdited] = useState(false);
-
-  const priceRef = useRef<TextInput>(null);
-  const nameRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (!permission) return;
@@ -73,20 +49,6 @@ export default function CameraScreen() {
     }
   }, [navigation, permission, requestPermission]);
 
-  useEffect(() => {
-    if (result) {
-      setName(result.name);
-      setPrice(result.price !== null ? result.price.toFixed(2) : '');
-      setNameEdited(false);
-      setPriceEdited(false);
-      if (!result.name) {
-        nameRef.current?.focus();
-      } else if (result.price === null) {
-        priceRef.current?.focus();
-      }
-    }
-  }, [result]);
-
   const toggleFlash = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setFlashMode((prev) => (prev === 'off' ? 'on' : 'off'));
@@ -100,12 +62,6 @@ export default function CameraScreen() {
       if (!photo) return;
       setCapturedUri(photo.uri);
       setPhase('review');
-      setName('');
-      setPrice('');
-      setQuantity(1);
-      setNameError('');
-      setNameEdited(false);
-      setPriceEdited(false);
       reset();
       await extract(photo.uri);
     } catch {
@@ -113,25 +69,14 @@ export default function CameraScreen() {
     }
   }, [extract, reset]);
 
-  const handleRetake = useCallback(() => {
-    bottomSheetRef.current?.close();
-  }, []);
-
-  // Called when user drags the sheet closed — syncs state back to viewfinder
+  // Called when review sheet is dismissed (drag-to-close or Retry)
   const handleSheetClose = useCallback(() => {
     setCapturedUri(null);
     setPhase('viewfinder');
     reset();
   }, [reset]);
 
-  const handleAdd = useCallback(() => {
-    if (!name.trim()) {
-      setNameError('Please enter a product name');
-      nameRef.current?.focus();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      return;
-    }
-    setNameError('');
+  const handleAdd = useCallback((name: string, price: string, quantity: number) => {
     const parsedPrice = parseFloat(price.replace(',', '.')) || 0;
     addItem({
       id: Date.now().toString(),
@@ -142,16 +87,10 @@ export default function CameraScreen() {
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     navigation.goBack();
-  }, [name, price, quantity, capturedUri, addItem, navigation]);
+  }, [capturedUri, addItem, navigation]);
 
-  const formattedPriceCandidates = (result?.priceCandidates ?? []).map((p) => `€${p.toFixed(2)}`);
-  const currentPriceForChip = price ? `€${parseFloat(price.replace(',', '.')).toFixed(2)}` : '';
   const runningTotal = activeTrip?.total ?? 0;
   const itemCount = activeTrip?.items.length ?? 0;
-
-  const parsedPrice = parseFloat(price.replace(',', '.')) || 0;
-  const lineTotal = parsedPrice * quantity;
-  const addBtnLabel = lineTotal > 0 ? `Add  · €${lineTotal.toFixed(2)}` : 'Add to list';
 
   if (!permission) return <View style={[styles.container, { backgroundColor: c.bg }]} />;
 
@@ -217,138 +156,14 @@ export default function CameraScreen() {
         </View>
       )}
 
-      {/* Review sheet — mounted only during review phase; animates in on mount */}
       {phase === 'review' && (
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={0}
-        snapPoints={snapPoints}
-        enablePanDownToClose
-        keyboardBehavior="extend"
-        keyboardBlurBehavior="restore"
-        backgroundStyle={{ backgroundColor: c.surface }}
-        handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: c.muted }]}
-        onClose={handleSheetClose}
-      >
-        <BottomSheetScrollView
-          contentContainerStyle={[styles.sheetScroll, { paddingBottom: insets.bottom + spacing.xl }]}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Extraction status badge */}
-          {!loading && result && (
-            <View style={styles.extractionBadge}>
-              <View style={[styles.extractionDot, { backgroundColor: c.accent }]} />
-              <Text style={[styles.extractionText, { color: c.accent, fontFamily: fonts.sans600 }]}>
-                {result.name || result.price !== null
-                  ? 'EXTRACTED · REVIEW BELOW'
-                  : "COULDN'T READ TAG — TYPE MANUALLY"}
-              </Text>
-            </View>
-          )}
-
-          {loading && (
-            <View style={styles.loadingRow}>
-              <ActivityIndicator size="small" color={c.accent} />
-              <Text style={[styles.loadingText, { color: c.muted, fontFamily: fonts.sans }]}>
-                Reading price tag…
-              </Text>
-            </View>
-          )}
-
-          {/* Item name */}
-          <View style={styles.field}>
-            <Text style={[styles.fieldLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>ITEM</Text>
-            <BottomSheetTextInput
-              ref={nameRef}
-              style={[
-                styles.nameInput,
-                {
-                  borderBottomColor: nameError ? c.pop : c.hairline,
-                  color: c.ink,
-                  fontFamily: fonts.sans600,
-                },
-              ]}
-              value={name}
-              onChangeText={(t) => {
-                setName(t);
-                setNameEdited(true);
-                if (t.trim()) setNameError('');
-              }}
-              placeholder="e.g. Leche entera"
-              placeholderTextColor={c.muted}
-              returnKeyType="next"
-              keyboardAppearance={keyboardAppearance}
-              onSubmitEditing={() => priceRef.current?.focus()}
-              autoCapitalize="words"
-            />
-            {nameError ? (
-              <Text style={[styles.errorText, { color: c.pop, fontFamily: fonts.sans }]}>{nameError}</Text>
-            ) : null}
-            {!nameEdited && (
-              <CandidateChips
-                candidates={result?.nameCandidates ?? []}
-                currentValue={name}
-                onSelect={(v) => setName(v)}
-                testID="name-chips"
-              />
-            )}
-          </View>
-
-          {/* Price + Qty row */}
-          <View style={styles.priceQtyRow}>
-            <View style={styles.priceBlock}>
-              <Text style={[styles.fieldLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>PRICE</Text>
-              <BottomSheetTextInput
-                ref={priceRef}
-                style={[
-                  styles.priceInput,
-                  { borderBottomColor: c.hairline, color: c.ink, fontFamily: fonts.serif },
-                ]}
-                value={price}
-                onChangeText={(t) => { setPrice(t); setPriceEdited(true); }}
-                placeholder="0,00"
-                placeholderTextColor={c.muted}
-                keyboardType="decimal-pad"
-                returnKeyType="done"
-                keyboardAppearance={keyboardAppearance}
-              />
-              {!priceEdited && (
-                <CandidateChips
-                  candidates={formattedPriceCandidates}
-                  currentValue={currentPriceForChip}
-                  onSelect={(v) => setPrice(v.replace('€', ''))}
-                  testID="price-chips"
-                />
-              )}
-            </View>
-
-            <View style={styles.qtyBlock}>
-              <Text style={[styles.fieldLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>QTY</Text>
-              <QuantityPicker quantity={quantity} onChangeQuantity={setQuantity} />
-            </View>
-          </View>
-
-          {/* Actions */}
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.retakeBtn, { borderColor: c.hairline }]}
-              onPress={handleRetake}
-              activeOpacity={0.75}
-            >
-              <Text style={[styles.retakeBtnText, { color: c.ink, fontFamily: fonts.sans600 }]}>Retry</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.addBtn, { backgroundColor: c.accent }]}
-              onPress={handleAdd}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.addBtnText, { color: c.accentInk, fontFamily: fonts.sans700 }]}>
-                {addBtnLabel}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </BottomSheetScrollView>
-      </BottomSheet>
+        <ReviewSheet
+          mode="add"
+          ocrResult={result}
+          ocrLoading={loading}
+          onClose={handleSheetClose}
+          onSubmit={handleAdd}
+        />
       )}
     </View>
   );
@@ -438,64 +253,4 @@ const styles = StyleSheet.create({
     backgroundColor: CAMERA_WHITE,
   },
 
-  // review sheet
-  sheetScroll: { padding: spacing.md, gap: spacing.md },
-
-  extractionBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: spacing.xs,
-  },
-  extractionDot: { width: 6, height: 6, borderRadius: 3 },
-  extractionText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
-
-  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  loadingText: { fontSize: fontSizes.body },
-
-  field: { gap: spacing.xs },
-  fieldLabel: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
-  nameInput: {
-    fontSize: 19,
-    fontWeight: '600',
-    letterSpacing: -0.3,
-    borderBottomWidth: 1,
-    paddingBottom: spacing.xs,
-    paddingHorizontal: 0,
-    height: 40,
-  },
-  errorText: { fontSize: fontSizes.caption },
-
-  priceQtyRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.md },
-  priceBlock: { flex: 1, gap: spacing.xs },
-  priceInput: {
-    fontSize: 32,
-    fontWeight: '500',
-    letterSpacing: -0.5,
-    borderBottomWidth: 1,
-    paddingBottom: spacing.xs,
-    paddingHorizontal: 0,
-    height: 48,
-  },
-  qtyBlock: { gap: spacing.xs, paddingBottom: 2 },
-
-  actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
-  retakeBtn: {
-    height: 48,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.full,
-    borderWidth: 1.2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retakeBtnText: { fontSize: fontSizes.body, fontWeight: '600' },
-  handleIndicator: { width: 36, height: 4 },
-  addBtn: {
-    flex: 1,
-    height: 48,
-    borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addBtnText: { fontSize: fontSizes.bodyLg, fontWeight: '700' },
 });

@@ -2,24 +2,26 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import { Camera, ChevronLeft } from 'lucide-react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShoppingList } from '@/components/list/ShoppingList';
 import { BudgetBar } from '@/components/ui/BudgetBar';
 import { LastAddedBadge } from '@/components/ui/LastAddedBadge';
+import { ReviewSheet } from '@/components/ui/ReviewSheet';
 import { TotalDisplay } from '@/components/ui/TotalDisplay';
 import { useAppContext } from '@/context/AppContext';
 import { useTheme, fontSizes, fonts, spacing, touchTarget, radius } from '@/theme';
-import { type RootStackParamList } from '@/types';
+import { type RootStackParamList, type ScannedItem } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'ActiveList'>;
 
 export default function ActiveListScreen() {
   const c = useTheme();
-  const { activeTrip, removeItem, updateQuantity } = useAppContext();
+  const { activeTrip, removeItem, updateQuantity, updateItem } = useAppContext();
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
+  const [editingItem, setEditingItem] = useState<ScannedItem | null>(null);
 
   const items = activeTrip?.items ?? [];
   const total = activeTrip?.total ?? 0;
@@ -34,6 +36,18 @@ export default function ActiveListScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     navigation.navigate('Camera');
   }, [navigation]);
+
+  const handleEdit = useCallback((item: ScannedItem) => {
+    setEditingItem(item);
+  }, []);
+
+  const handleEditSubmit = useCallback((name: string, price: string, quantity: number) => {
+    if (!editingItem) return;
+    const parsedPrice = parseFloat(price.replace(',', '.')) || 0;
+    updateItem(editingItem.id, name.trim(), parsedPrice, quantity);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setEditingItem(null);
+  }, [editingItem, updateItem]);
 
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
@@ -88,7 +102,7 @@ export default function ActiveListScreen() {
 
         {/* Items card */}
         <View style={styles.itemsWrapper}>
-          <ShoppingList items={items} onRemove={removeItem} onUpdateQuantity={updateQuantity} />
+          <ShoppingList items={items} onRemove={removeItem} onUpdateQuantity={updateQuantity} onEdit={handleEdit} />
         </View>
       </ScrollView>
 
@@ -111,6 +125,17 @@ export default function ActiveListScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {editingItem && (
+        <ReviewSheet
+          mode="edit"
+          initialName={editingItem.name}
+          initialPrice={editingItem.pricePerUnit.toFixed(2)}
+          initialQuantity={editingItem.quantity}
+          onClose={() => setEditingItem(null)}
+          onSubmit={handleEditSubmit}
+        />
+      )}
     </View>
   );
 }

@@ -13,6 +13,7 @@ type Action =
   | { type: 'ADD_ITEM'; payload: ScannedItem }
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
+  | { type: 'UPDATE_ITEM'; payload: { id: string; name: string; pricePerUnit: number; quantity: number } }
   | { type: 'FINISH_TRIP' }
   | { type: 'DISCARD_TRIP' };
 
@@ -36,6 +37,14 @@ function tripReducer(trip: Trip, action: Action): Trip {
       );
       return { ...trip, items, total: computeTotal(items) };
     }
+    case 'UPDATE_ITEM': {
+      const items = trip.items.map((i) =>
+        i.id === action.payload.id
+          ? { ...i, name: action.payload.name, pricePerUnit: action.payload.pricePerUnit, quantity: action.payload.quantity }
+          : i,
+      );
+      return { ...trip, items, total: computeTotal(items) };
+    }
     default:
       return trip;
   }
@@ -56,7 +65,8 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'ADD_ITEM':
     case 'REMOVE_ITEM':
-    case 'UPDATE_QUANTITY': {
+    case 'UPDATE_QUANTITY':
+    case 'UPDATE_ITEM': {
       if (!state.activeTrip) return state;
       return { ...state, activeTrip: tripReducer(state.activeTrip, action) };
     }
@@ -80,6 +90,7 @@ interface AppContextValue {
   addItem: (item: ScannedItem) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
+  updateItem: (id: string, name: string, pricePerUnit: number, quantity: number) => void;
   finishTrip: () => void;
   discardTrip: () => void;
 }
@@ -109,6 +120,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } }),
     [],
   );
+  const updateItem = useCallback(
+    (id: string, name: string, pricePerUnit: number, quantity: number) =>
+      dispatch({ type: 'UPDATE_ITEM', payload: { id, name, pricePerUnit, quantity } }),
+    [],
+  );
   const finishTrip = useCallback(() => dispatch({ type: 'FINISH_TRIP' }), []);
   const discardTrip = useCallback(() => dispatch({ type: 'DISCARD_TRIP' }), []);
 
@@ -120,6 +136,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         addItem,
         removeItem,
         updateQuantity,
+        updateItem,
         finishTrip,
         discardTrip,
       }}

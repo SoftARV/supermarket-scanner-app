@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { Minus, Plus, X } from 'lucide-react-native';
+import { Minus, Pencil, Plus, X } from 'lucide-react-native';
 import React, { useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -13,15 +13,17 @@ import { useTheme, fonts, spacing, ITEM_HEIGHT } from '@/theme';
 import { type ScannedItem } from '@/types';
 
 const DELETE_THRESHOLD = -90;
+const EDIT_THRESHOLD = 90;
 
 interface Props {
   item: ScannedItem;
   onRemove: (id: string) => void;
   onUpdateQuantity: (id: string, quantity: number) => void;
+  onEdit: (item: ScannedItem) => void;
   showBorder?: boolean;
 }
 
-export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQuantity, showBorder = true }: Props) {
+export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQuantity, onEdit, showBorder = true }: Props) {
   const c = useTheme();
   const lineTotal = item.pricePerUnit * item.quantity;
   const translateX = useSharedValue(0);
@@ -30,6 +32,11 @@ export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQ
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     onRemove(item.id);
   }, [item.id, onRemove]);
+
+  const doEdit = useCallback(() => {
+    translateX.value = withSpring(0);
+    onEdit(item);
+  }, [item, onEdit, translateX]);
 
   const decrement = useCallback(() => {
     if (item.quantity <= 1) return;
@@ -43,13 +50,15 @@ export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQ
   }, [item.id, item.quantity, onUpdateQuantity]);
 
   const panGesture = Gesture.Pan()
-    .activeOffsetX(-10)
+    .activeOffsetX([-10, 10])
     .failOffsetY([-10, 10])
     .onUpdate((e) => {
-      translateX.value = Math.min(0, e.translationX);
+      translateX.value = e.translationX;
     })
     .onEnd(() => {
-      if (translateX.value < DELETE_THRESHOLD) {
+      if (translateX.value > EDIT_THRESHOLD) {
+        runOnJS(doEdit)();
+      } else if (translateX.value < DELETE_THRESHOLD) {
         runOnJS(doRemove)();
       } else {
         translateX.value = withSpring(0);
@@ -60,13 +69,20 @@ export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQ
     transform: [{ translateX: translateX.value }],
   }));
 
+  const editHintStyle = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, translateX.value) / EDIT_THRESHOLD),
+  }));
+
   const deleteHintStyle = useAnimatedStyle(() => ({
-    opacity: Math.min(1, Math.abs(translateX.value) / Math.abs(DELETE_THRESHOLD)),
+    opacity: Math.min(1, Math.abs(Math.min(0, translateX.value)) / Math.abs(DELETE_THRESHOLD)),
   }));
 
   return (
-    <View style={[styles.wrapper, { backgroundColor: c.pop }]}>
-      <Animated.View style={[styles.deleteHint, deleteHintStyle]}>
+    <View style={styles.wrapper}>
+      <Animated.View style={[styles.editHint, { backgroundColor: c.accent }, editHintStyle]}>
+        <Pencil size={18} color="#fff" strokeWidth={1.8} />
+      </Animated.View>
+      <Animated.View style={[styles.deleteHint, { backgroundColor: c.pop }, deleteHintStyle]}>
         <X size={20} color="#fff" strokeWidth={1.8} />
       </Animated.View>
       <GestureDetector gesture={panGesture}>
@@ -123,6 +139,12 @@ const styles = StyleSheet.create({
   wrapper: {
     overflow: 'hidden',
     height: ITEM_HEIGHT,
+  },
+  editHint: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    paddingLeft: spacing.md,
   },
   deleteHint: {
     ...StyleSheet.absoluteFillObject,
