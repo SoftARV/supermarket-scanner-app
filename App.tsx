@@ -1,10 +1,10 @@
+import { Fraunces_500Medium, useFonts } from '@expo-google-fonts/fraunces';
 import {
   InterTight_400Regular,
   InterTight_500Medium,
   InterTight_600SemiBold,
   InterTight_700Bold,
 } from '@expo-google-fonts/inter-tight';
-import { Fraunces_500Medium, useFonts } from '@expo-google-fonts/fraunces';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -55,7 +55,7 @@ export default function App() {
             <StatusBar style={isDark ? 'light' : 'dark'} />
             <Stack.Navigator screenOptions={{ headerShown: false }}>
               <Stack.Screen name="History" component={HistoryScreen} />
-              <Stack.Screen name="StartTrip" component={StartTripScreen} />
+              <Stack.Screen name="StartTrip" component={StartTripScreen} options={{ presentation: 'modal' }} />
               <Stack.Screen name="ActiveList" component={ActiveListScreen} />
               <Stack.Screen
                 name="Camera"

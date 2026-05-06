@@ -1,4 +1,4 @@
-import { useNavigation } from "@react-navigation/native";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
 import React, { useRef, useState } from "react";
@@ -78,7 +78,9 @@ export default function StartTripScreen() {
         : null;
     startTrip(store.trim(), budget);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    navigation.navigate("ActiveList");
+    navigation.dispatch(
+      CommonActions.reset({ index: 1, routes: [{ name: "History" }, { name: "ActiveList" }] })
+    );
   };
 
   return (
@@ -186,7 +188,6 @@ export default function StartTripScreen() {
               style={[
                 styles.presetChip,
                 {
-                  borderColor: store === preset ? c.accent : c.hairline,
                   backgroundColor: store === preset ? c.accentSoft : c.surface,
                 },
               ]}
@@ -386,7 +387,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.full,
-    borderWidth: 1,
     height: 28,
     justifyContent: "center",
   },
