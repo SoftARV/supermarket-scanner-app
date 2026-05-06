@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BudgetBar } from '@/components/ui/BudgetBar';
 import { useTheme, fontSizes, fonts, radius, spacing } from '@/theme';
 import { type Trip } from '@/types';
 
@@ -24,32 +25,33 @@ export const TripCard = React.memo(function TripCard({ trip, onPress }: Props) {
       activeOpacity={0.75}
       accessibilityLabel={`Trip to ${trip.store}, ${date}`}
     >
-      <View style={styles.left}>
-        <Text style={[styles.store, { color: c.ink }]} numberOfLines={1}>
-          {trip.store}
-        </Text>
-        <Text style={[styles.meta, { color: c.muted }]}>
-          {date} · {trip.items.length} item{trip.items.length !== 1 ? 's' : ''}
-        </Text>
-      </View>
+      <Text style={[styles.store, { color: c.ink }]} numberOfLines={1}>
+        {trip.store}
+      </Text>
+      <Text style={[styles.meta, { color: c.muted }]}>
+        {date} · {trip.items.length} item{trip.items.length !== 1 ? 's' : ''}
+      </Text>
       <Text style={[styles.total, { color: c.ink, fontFamily: fonts.serif }]}>
         €{trip.total.toFixed(2)}
       </Text>
+      {trip.budget !== null && (
+        <View style={styles.budgetBarWrapper}>
+          <BudgetBar spent={trip.total} budget={trip.budget} hideLabels />
+        </View>
+      )}
     </TouchableOpacity>
   );
 });
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     padding: spacing.md,
     borderRadius: radius.lg,
     borderWidth: 1,
+    gap: 4,
   },
-  left: { flex: 1, gap: 3 },
   store: { fontSize: fontSizes.bodyLg, fontWeight: '600' },
   meta: { fontSize: fontSizes.caption },
-  total: { fontSize: fontSizes.large, fontWeight: '500', marginLeft: spacing.md },
+  total: { fontSize: fontSizes.title, fontWeight: '500', marginTop: 2 },
+  budgetBarWrapper: { marginTop: spacing.xs },
 });

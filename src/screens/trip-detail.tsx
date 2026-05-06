@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TotalDisplay } from '@/components/ui/TotalDisplay';
 import { useAppContext } from '@/context/AppContext';
-import { useTheme, spacing, fontSizes, radius } from '@/theme';
+import { useTheme, spacing, fontSizes, fonts, radius } from '@/theme';
 import { type RootStackParamList } from '@/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TripDetail'>;
@@ -40,18 +40,31 @@ export default function TripDetailScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text style={[styles.back, { color: c.accent }]}>Back</Text>
         </TouchableOpacity>
-        <Text style={[styles.title, { color: c.ink }]} numberOfLines={1}>{trip.store}</Text>
+        <Text style={[styles.headerTitle, { color: c.ink }]} numberOfLines={1}>{trip.store}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <View style={[styles.totalCard, { backgroundColor: c.surface, borderColor: c.hairline }]}>
-          <Text style={[styles.dateText, { color: c.muted }]}>{date}</Text>
-          <TotalDisplay total={trip.total} size="lg" />
+        {/* Store name serif heading */}
+        <Text style={[styles.storeHeading, { color: c.ink, fontFamily: fonts.serif }]}>
+          {trip.store}
+        </Text>
+        <Text style={[styles.dateText, { color: c.muted }]}>{date}</Text>
+
+        {/* Total + budget side-by-side */}
+        <View style={[styles.summaryRow, { backgroundColor: c.surface, borderColor: c.hairline }]}>
+          <View style={styles.summaryBlock}>
+            <Text style={[styles.summaryLabel, { color: c.muted }]}>Total</Text>
+            <TotalDisplay total={trip.total} size="md" />
+          </View>
           {trip.budget !== null && (
-            <Text style={[styles.budgetLine, { color: c.muted }]}>
-              Budget: €{trip.budget.toFixed(2)}
-            </Text>
+            <>
+              <View style={[styles.summaryDivider, { backgroundColor: c.hairline }]} />
+              <View style={styles.summaryBlock}>
+                <Text style={[styles.summaryLabel, { color: c.muted }]}>Budget</Text>
+                <TotalDisplay total={trip.budget} size="md" />
+              </View>
+            </>
           )}
         </View>
 
@@ -86,19 +99,26 @@ const styles = StyleSheet.create({
   },
   back: { fontSize: fontSizes.bodyLg, fontWeight: '500' },
   headerSpacer: { width: 52 },
-  title: { fontSize: fontSizes.title, fontWeight: '700', flex: 1, textAlign: 'center' },
+  headerTitle: { fontSize: fontSizes.title, fontWeight: '700', flex: 1, textAlign: 'center' },
   body: { padding: spacing.md, gap: spacing.sm },
-  notFound: { textAlign: 'center', marginTop: spacing.xl, fontSize: fontSizes.body },
-  totalCard: {
+  storeHeading: { fontSize: fontSizes.large, fontWeight: '500', marginBottom: spacing.xs },
+  dateText: { fontSize: fontSizes.caption, marginBottom: spacing.sm },
+  summaryRow: {
+    flexDirection: 'row',
     borderRadius: radius.lg,
     borderWidth: 1,
-    padding: spacing.lg,
-    alignItems: 'center',
+    overflow: 'hidden',
     marginBottom: spacing.md,
+  },
+  summaryBlock: {
+    flex: 1,
+    padding: spacing.md,
+    alignItems: 'center',
     gap: spacing.xs,
   },
-  dateText: { fontSize: fontSizes.caption },
-  budgetLine: { fontSize: fontSizes.body },
+  summaryLabel: { fontSize: fontSizes.caption, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  summaryDivider: { width: 1 },
+  notFound: { textAlign: 'center', marginTop: spacing.xl, fontSize: fontSizes.body },
   sectionLabel: {
     fontSize: fontSizes.caption,
     fontWeight: '600',

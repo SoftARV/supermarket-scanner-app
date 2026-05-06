@@ -1,77 +1,108 @@
 import * as Haptics from 'expo-haptics';
 import React, { useCallback } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { QuantityPicker } from '@/components/ui/QuantityPicker';
-import { useTheme, fontSizes, ITEM_HEIGHT, spacing } from '@/theme';
+import { StyleSheet, Text, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import { useTheme, fontSizes, spacing, radius } from '@/theme';
 import { type ScannedItem } from '@/types';
+
+const CARD_HEIGHT = 68;
+const DELETE_THRESHOLD = -90;
+// Delete zone background is always pop-red; icon must be white regardless of theme.
+const DELETE_ICON_COLOR = '#fff';
 
 interface Props {
   item: ScannedItem;
   onRemove: (id: string) => void;
-  onUpdateQuantity: (id: string, quantity: number) => void;
 }
 
-export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQuantity }: Props) {
+export const ItemCard = React.memo(function ItemCard({ item, onRemove }: Props) {
   const c = useTheme();
   const lineTotal = item.pricePerUnit * item.quantity;
+  const translateX = useSharedValue(0);
 
-  const handleRemove = useCallback(() => {
-    Alert.alert('Remove item', `Remove "${item.name}" from list?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          onRemove(item.id);
-        },
-      },
-    ]);
-  }, [item.id, item.name, onRemove]);
+  const doRemove = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    onRemove(item.id);
+  }, [item.id, onRemove]);
 
-  const handleQuantityChange = useCallback(
-    (qty: number) => onUpdateQuantity(item.id, qty),
-    [item.id, onUpdateQuantity],
-  );
+  const panGesture = Gesture.Pan()
+    .activeOffsetX(-10)
+    .failOffsetY([-10, 10])
+    .onUpdate((e) => {
+      translateX.value = Math.min(0, e.translationX);
+    })
+    .onEnd(() => {
+      if (translateX.value < DELETE_THRESHOLD) {
+        runOnJS(doRemove)();
+      } else {
+        translateX.value = withSpring(0);
+      }
+    });
+
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const deleteHintStyle = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.abs(translateX.value) / Math.abs(DELETE_THRESHOLD)),
+  }));
 
   return (
-    <View style={[styles.card, { backgroundColor: c.surface, borderBottomColor: c.hairline }]}>
-      <View style={styles.info}>
-        <Text style={[styles.name, { color: c.ink }]} numberOfLines={1}>
-          {item.name || 'Unnamed item'}
-        </Text>
-        <Text style={[styles.unitPrice, { color: c.muted }]}>€{item.pricePerUnit.toFixed(2)} / unit</Text>
-      </View>
-      <View style={styles.right}>
-        <QuantityPicker quantity={item.quantity} onChangeQuantity={handleQuantityChange} />
-        <Text style={[styles.lineTotal, { color: c.accent }]}>€{lineTotal.toFixed(2)}</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={handleRemove}
-        accessibilityLabel={`Remove ${item.name}`}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Text style={[styles.deleteText, { color: c.pop }]}>✕</Text>
-      </TouchableOpacity>
+    <View style={[styles.wrapper, { backgroundColor: c.pop }]}>
+      <Animated.View style={[styles.deleteHint, deleteHintStyle]}>
+        <Text style={styles.deleteIcon}>✕</Text>
+      </Animated.View>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View
+          style={[styles.card, { backgroundColor: c.surface, borderColor: c.hairline }, cardStyle]}
+        >
+          <View style={styles.info}>
+            <Text style={[styles.name, { color: c.ink }]} numberOfLines={1}>
+              {item.name || 'Unnamed item'}
+            </Text>
+            <Text style={[styles.meta, { color: c.muted }]}>
+              {item.quantity} × €{item.pricePerUnit.toFixed(2)}
+            </Text>
+          </View>
+          <Text style={[styles.lineTotal, { color: c.ink }]}>
+            €{lineTotal.toFixed(2)}
+          </Text>
+        </Animated.View>
+      </GestureDetector>
     </View>
   );
 });
 
 const styles = StyleSheet.create({
+  wrapper: {
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    height: CARD_HEIGHT,
+  },
+  deleteHint: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    paddingRight: spacing.md,
+  },
+  deleteIcon: { color: DELETE_ICON_COLOR, fontSize: fontSizes.title, fontWeight: '700' },
   card: {
-    height: ITEM_HEIGHT,
+    height: CARD_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    borderBottomWidth: 1,
+    borderRadius: radius.md,
+    borderWidth: 1,
     gap: spacing.sm,
   },
-  info: { flex: 1, justifyContent: 'center', gap: 2 },
-  name: { fontSize: fontSizes.body, fontWeight: '600' },
-  unitPrice: { fontSize: fontSizes.caption },
-  right: { alignItems: 'flex-end', gap: 4 },
-  lineTotal: { fontSize: fontSizes.body, fontWeight: '700' },
-  deleteButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  deleteText: { fontSize: 16, fontWeight: '700' },
+  info: { flex: 1, gap: 3 },
+  name: { fontSize: fontSizes.bodyLg, fontWeight: '600' },
+  meta: { fontSize: fontSizes.caption },
+  lineTotal: { fontSize: fontSizes.bodyLg, fontWeight: '700' },
 });

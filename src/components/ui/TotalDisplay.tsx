@@ -4,14 +4,17 @@ import { useTheme, fonts, fontSizes } from '@/theme';
 
 interface Props {
   total: number;
-  size?: 'md' | 'lg';
+  size?: 'md' | 'lg' | 'xl';
 }
 
 export function TotalDisplay({ total, size = 'lg' }: Props) {
   const c = useTheme();
   const [intPart, decPart] = total.toFixed(2).split('.');
-  const heroSize = size === 'lg' ? fontSizes.hero : fontSizes.price;
-  const smallSize = size === 'lg' ? fontSizes.large : fontSizes.bodyLg;
+
+  const heroSize =
+    size === 'xl' ? fontSizes.hero2 : size === 'lg' ? fontSizes.hero : fontSizes.price;
+  const smallSize =
+    size === 'xl' || size === 'lg' ? fontSizes.large : fontSizes.bodyLg;
 
   return (
     <View style={styles.row}>
@@ -30,7 +33,7 @@ export function TotalDisplay({ total, size = 'lg' }: Props) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-end' },
-  symbol: { fontWeight: '500', paddingBottom: 4 },
+  symbol: { fontWeight: '500', paddingBottom: 6 },
   integer: { fontWeight: '500' },
-  cents: { fontWeight: '500', paddingBottom: 6 },
+  cents: { fontWeight: '500', paddingBottom: 8 },
 });

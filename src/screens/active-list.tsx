@@ -16,7 +16,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'ActiveList'>;
 
 export default function ActiveListScreen() {
   const c = useTheme();
-  const { activeTrip, removeItem, updateQuantity, discardTrip } = useAppContext();
+  const { activeTrip, removeItem, discardTrip } = useAppContext();
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
 
@@ -50,11 +50,14 @@ export default function ActiveListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md, backgroundColor: c.surface, borderBottomColor: c.hairline }]}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <TouchableOpacity onPress={handleDiscard} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text style={[styles.headerAction, { color: c.pop }]}>Discard</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: c.ink }]}>{activeTrip?.store ?? 'Basket'}</Text>
+        <Text style={[styles.headerTitle, { color: c.ink }]} numberOfLines={1}>
+          {activeTrip?.store ?? 'Basket'}
+        </Text>
         {items.length > 0 ? (
           <TouchableOpacity onPress={handleFinish} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Text style={[styles.headerAction, { color: c.accent }]}>Finish</Text>
@@ -64,19 +67,22 @@ export default function ActiveListScreen() {
         )}
       </View>
 
-      <ShoppingList items={items} onRemove={removeItem} onUpdateQuantity={updateQuantity} />
-
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: c.surface, borderTopColor: c.hairline }]}>
-        {items.length > 0 && (
-          <LastAddedBadge item={items[items.length - 1]} />
-        )}
+      {/* Hero total block */}
+      <View style={[styles.hero, { backgroundColor: c.surface, borderBottomColor: c.hairline }]}>
+        <TotalDisplay total={total} size="xl" />
+        {items.length > 0 && <LastAddedBadge item={items[items.length - 1]} />}
         {activeTrip?.budget != null && (
-          <BudgetBar spent={total} budget={activeTrip.budget} />
+          <View style={styles.heroBudget}>
+            <BudgetBar spent={total} budget={activeTrip.budget} />
+          </View>
         )}
-        <View style={styles.totalRow}>
-          <Text style={[styles.totalLabel, { color: c.muted }]}>Total</Text>
-          <TotalDisplay total={total} size="md" />
-        </View>
+      </View>
+
+      {/* Item list */}
+      <ShoppingList items={items} onRemove={removeItem} />
+
+      {/* Footer */}
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: c.surface, borderTopColor: c.hairline }]}>
         <TouchableOpacity
           style={[styles.fab, { backgroundColor: c.accent }]}
           onPress={handleScan}
@@ -86,6 +92,11 @@ export default function ActiveListScreen() {
           <Text style={styles.fabIcon}>📷</Text>
           <Text style={[styles.fabLabel, { color: c.accentInk }]}>Scan item</Text>
         </TouchableOpacity>
+        {items.length > 0 && (
+          <TouchableOpacity onPress={handleFinish} style={styles.finishLink}>
+            <Text style={[styles.finishLinkText, { color: c.muted }]}>Finish shopping →</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -99,18 +110,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.md,
+  },
+  headerTitle: { fontSize: fontSizes.title, fontWeight: '700', flex: 1, textAlign: 'center', marginHorizontal: spacing.sm },
+  headerAction: { fontSize: fontSizes.bodyLg, fontWeight: '600', minWidth: 52 },
+  headerSpacer: { width: 52 },
+  hero: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+    alignItems: 'center',
+    gap: spacing.sm,
     borderBottomWidth: 1,
   },
-  headerTitle: { fontSize: fontSizes.title, fontWeight: '700' },
-  headerAction: { fontSize: fontSizes.bodyLg, fontWeight: '600', minWidth: 52 },
+  heroBudget: { alignSelf: 'stretch' },
   footer: {
     borderTopWidth: 1,
     paddingTop: spacing.md,
     paddingHorizontal: spacing.md,
-    gap: spacing.md,
+    gap: spacing.sm,
   },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  totalLabel: { fontSize: fontSizes.title, fontWeight: '600' },
   fab: {
     height: touchTarget.fab,
     borderRadius: radius.full,
@@ -119,7 +137,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
   },
-  fabIcon: { fontSize: 22 },
+  fabIcon: { fontSize: 20 },
   fabLabel: { fontSize: fontSizes.title, fontWeight: '700' },
-  headerSpacer: { width: 52 },
+  finishLink: { alignItems: 'center', paddingVertical: spacing.xs },
+  finishLinkText: { fontSize: fontSizes.body, fontWeight: '500' },
 });

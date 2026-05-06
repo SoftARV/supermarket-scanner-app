@@ -1,11 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -19,6 +21,8 @@ import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'StartTrip'>;
 
+const STORE_PRESETS = ['Mercadona', 'Lidl', 'Carrefour', 'Aldi', 'El Corte Inglés'];
+
 export default function StartTripScreen() {
   const c = useTheme();
   const insets = useSafeAreaInsets();
@@ -29,8 +33,18 @@ export default function StartTripScreen() {
   const keyboardAppearance = scheme === 'dark' ? 'dark' : 'light';
 
   const [store, setStore] = useState('');
+  const [budgetEnabled, setBudgetEnabled] = useState(false);
   const [budgetText, setBudgetText] = useState('');
   const [storeError, setStoreError] = useState(false);
+
+  const budgetRef = useRef<TextInput>(null);
+
+  const handleBudgetToggle = (value: boolean) => {
+    setBudgetEnabled(value);
+    if (value) {
+      setTimeout(() => budgetRef.current?.focus(), 100);
+    }
+  };
 
   const handleStart = () => {
     if (!store.trim()) {
@@ -38,7 +52,7 @@ export default function StartTripScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
-    const budget = budgetText ? parseFloat(budgetText.replace(',', '.')) : null;
+    const budget = budgetEnabled && budgetText ? parseFloat(budgetText.replace(',', '.')) : null;
     startTrip(store.trim(), budget && !isNaN(budget) ? budget : null);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     navigation.navigate('ActiveList');
@@ -49,7 +63,7 @@ export default function StartTripScreen() {
       style={[styles.container, { backgroundColor: c.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md, backgroundColor: c.surface, borderBottomColor: c.hairline }]}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text style={[styles.back, { color: c.accent }]}>Cancel</Text>
         </TouchableOpacity>
@@ -57,16 +71,27 @@ export default function StartTripScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      <View style={styles.form}>
+      <ScrollView
+        contentContainerStyle={styles.form}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Store name */}
         <View style={styles.field}>
           <Text style={[styles.label, { color: c.muted }]}>Store name</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: c.surface, borderColor: storeError ? c.pop : c.hairline, color: c.ink }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: c.surface,
+                borderBottomColor: storeError ? c.pop : c.accent,
+                color: c.ink,
+              },
+            ]}
             placeholder="e.g. Mercadona"
             placeholderTextColor={c.muted}
             value={store}
             onChangeText={(t) => { setStore(t); setStoreError(false); }}
-            returnKeyType="next"
+            returnKeyType="done"
             keyboardAppearance={keyboardAppearance}
             autoFocus
           />
@@ -75,30 +100,68 @@ export default function StartTripScreen() {
           )}
         </View>
 
-        <View style={styles.field}>
-          <Text style={[styles.label, { color: c.muted }]}>Budget (optional)</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: c.surface, borderColor: c.hairline, color: c.ink }]}
-            placeholder="€0.00"
-            placeholderTextColor={c.muted}
-            value={budgetText}
-            onChangeText={setBudgetText}
-            keyboardType="decimal-pad"
-            returnKeyType="done"
-            keyboardAppearance={keyboardAppearance}
-            onSubmitEditing={handleStart}
+        {/* Store presets */}
+        <View style={styles.presetRow}>
+          {STORE_PRESETS.map((preset) => (
+            <TouchableOpacity
+              key={preset}
+              style={[
+                styles.presetChip,
+                {
+                  borderColor: store === preset ? c.accent : c.hairline,
+                  backgroundColor: store === preset ? c.accentSoft : c.surface,
+                },
+              ]}
+              onPress={() => { setStore(preset); setStoreError(false); }}
+            >
+              <Text style={[styles.presetText, { color: store === preset ? c.accent : c.muted }]}>
+                {preset}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Budget toggle */}
+        <View style={[styles.toggleRow, { borderColor: c.hairline, backgroundColor: c.surface }]}>
+          <Text style={[styles.toggleLabel, { color: c.ink }]}>Set a budget</Text>
+          <Switch
+            value={budgetEnabled}
+            onValueChange={handleBudgetToggle}
+            trackColor={{ false: c.surface2, true: c.accentSoft }}
+            thumbColor={budgetEnabled ? c.accent : c.muted}
           />
         </View>
-      </View>
+
+        {budgetEnabled && (
+          <View style={styles.field}>
+            <Text style={[styles.label, { color: c.muted }]}>Budget amount</Text>
+            <TextInput
+              ref={budgetRef}
+              style={[
+                styles.input,
+                { backgroundColor: c.surface, borderBottomColor: c.accent, color: c.ink },
+              ]}
+              placeholder="0,00"
+              placeholderTextColor={c.muted}
+              value={budgetText}
+              onChangeText={setBudgetText}
+              keyboardType="decimal-pad"
+              returnKeyType="done"
+              keyboardAppearance={keyboardAppearance}
+              onSubmitEditing={handleStart}
+            />
+          </View>
+        )}
+      </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: c.surface, borderTopColor: c.hairline }]}>
         <TouchableOpacity
           style={[styles.startBtn, { backgroundColor: c.accent }]}
           onPress={handleStart}
-          accessibilityLabel="Start shopping"
+          accessibilityLabel="Start scanning"
           activeOpacity={0.85}
         >
-          <Text style={[styles.startBtnLabel, { color: c.accentInk }]}>Start shopping</Text>
+          <Text style={[styles.startBtnLabel, { color: c.accentInk }]}>Start scanning →</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -113,22 +176,44 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.md,
-    borderBottomWidth: 1,
   },
   back: { fontSize: fontSizes.bodyLg, fontWeight: '500' },
   headerSpacer: { width: 52 },
   title: { fontSize: fontSizes.title, fontWeight: '700' },
-  form: { flex: 1, padding: spacing.md, gap: spacing.lg },
+  form: { padding: spacing.md, gap: spacing.lg },
   field: { gap: spacing.xs },
-  label: { fontSize: fontSizes.caption, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  label: {
+    fontSize: fontSizes.caption,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   input: {
     height: touchTarget.min,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    fontSize: fontSizes.bodyLg,
+    borderBottomWidth: 2,
+    paddingHorizontal: 0,
+    fontSize: fontSizes.large,
+    fontWeight: '500',
   },
   errorText: { fontSize: fontSizes.caption },
+  presetRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  presetChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+    borderWidth: 1,
+  },
+  presetText: { fontSize: fontSizes.caption, fontWeight: '600' },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
+  toggleLabel: { fontSize: fontSizes.bodyLg, fontWeight: '500' },
   footer: { padding: spacing.md, borderTopWidth: 1 },
   startBtn: {
     height: touchTarget.fab,

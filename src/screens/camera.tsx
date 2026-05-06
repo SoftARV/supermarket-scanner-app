@@ -29,11 +29,17 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'Camera'>;
 
 type Phase = 'viewfinder' | 'review';
 
+// Camera chrome is always white-on-black regardless of system theme.
+const CAMERA_WHITE = '#fff';
+const CAMERA_BTN_BG = 'rgba(0,0,0,0.45)';
+const SHUTTER_RING_BG = 'rgba(255,255,255,0.25)';
+const HINT_BG = 'rgba(0,0,0,0.55)';
+
 export default function CameraScreen() {
   const c = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
-  const { addItem } = useAppContext();
+  const { addItem, activeTrip } = useAppContext();
   const { extract, result, loading, reset } = useOcrExtraction();
 
   const [permission, requestPermission] = useCameraPermissions();
@@ -130,16 +136,17 @@ export default function CameraScreen() {
 
   const formattedPriceCandidates = (result?.priceCandidates ?? []).map((p) => `€${p.toFixed(2)}`);
   const currentPriceForChip = price ? `€${parseFloat(price.replace(',', '.')).toFixed(2)}` : '';
+  const runningTotal = activeTrip?.total ?? 0;
 
   if (!permission) return <View style={[styles.container, { backgroundColor: c.bg }]} />;
 
   return (
     // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
     <View style={[styles.container, { backgroundColor: '#000' }]}>
-      {/* ── Viewfinder ── */}
+      {/* Viewfinder */}
       <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
 
-      {/* Corner reticles — always white on camera black, regardless of theme */}
+      {/* Corner reticles */}
       {phase === 'viewfinder' && (
         <View style={styles.reticleContainer} pointerEvents="none">
           <View style={[styles.corner, styles.topLeft, styles.reticleColor]} />
@@ -159,9 +166,27 @@ export default function CameraScreen() {
         <Text style={styles.closeBtnText}>✕</Text>
       </TouchableOpacity>
 
-      {/* ── Shutter bar ── */}
+      {/* Running total chip */}
+      {phase === 'viewfinder' && (
+        <View style={[styles.totalChip, { top: insets.top + spacing.sm }]}>
+          <Text style={styles.totalChipText}>€{runningTotal.toFixed(2)}</Text>
+        </View>
+      )}
+
+      {/* Hint pill */}
+      {phase === 'viewfinder' && (
+        <View style={styles.hintPill} pointerEvents="none">
+          <Text style={styles.hintText}>Aim at price tag</Text>
+        </View>
+      )}
+
+      {/* Shutter row */}
       {phase === 'viewfinder' && (
         <View style={[styles.shutterBar, { paddingBottom: insets.bottom + spacing.lg }]}>
+          {/* Left slot: flash placeholder */}
+          <View style={styles.shutterSideSlot} />
+
+          {/* Shutter */}
           <TouchableOpacity
             style={styles.shutter}
             onPress={handleShutter}
@@ -170,10 +195,19 @@ export default function CameraScreen() {
           >
             <View style={styles.shutterInner} />
           </TouchableOpacity>
+
+          {/* Right slot: item count badge */}
+          <View style={styles.shutterSideSlot}>
+            {(activeTrip?.items.length ?? 0) > 0 && (
+              <View style={styles.countBadge}>
+                <Text style={styles.countBadgeText}>{activeTrip?.items.length}</Text>
+              </View>
+            )}
+          </View>
         </View>
       )}
 
-      {/* ── Review sheet ── */}
+      {/* Review sheet */}
       {phase === 'review' && (
         <KeyboardAvoidingView
           style={styles.sheetWrapper}
@@ -186,7 +220,6 @@ export default function CameraScreen() {
               contentContainerStyle={[styles.sheetScroll, { paddingBottom: insets.bottom + spacing.xl }]}
               keyboardShouldPersistTaps="handled"
             >
-              {/* OCR loading / notice */}
               {loading && (
                 <View style={styles.loadingRow}>
                   <ActivityIndicator size="small" color={c.accent} />
@@ -201,7 +234,7 @@ export default function CameraScreen() {
 
               {/* Name */}
               <View style={styles.field}>
-                <Text style={[styles.label, { color: c.muted }]}>Product name</Text>
+                <Text style={[styles.fieldLabel, { color: c.muted }]}>Product name</Text>
                 <TextInput
                   ref={nameRef}
                   style={[styles.input, { backgroundColor: c.surface2, borderColor: nameError ? c.pop : c.hairline, color: c.ink }]}
@@ -227,7 +260,7 @@ export default function CameraScreen() {
 
               {/* Price */}
               <View style={styles.field}>
-                <Text style={[styles.label, { color: c.muted }]}>Price (€)</Text>
+                <Text style={[styles.fieldLabel, { color: c.muted }]}>Price (€)</Text>
                 <TextInput
                   ref={priceRef}
                   style={[styles.input, { backgroundColor: c.surface2, borderColor: c.hairline, color: c.ink }]}
@@ -251,7 +284,7 @@ export default function CameraScreen() {
 
               {/* Quantity */}
               <View style={styles.field}>
-                <Text style={[styles.label, { color: c.muted }]}>Quantity</Text>
+                <Text style={[styles.fieldLabel, { color: c.muted }]}>Quantity</Text>
                 <QuantityPicker quantity={quantity} onChangeQuantity={setQuantity} />
               </View>
 
@@ -278,14 +311,6 @@ export default function CameraScreen() {
 
 const CORNER_SIZE = 24;
 const CORNER_THICKNESS = 3;
-
-// Camera viewfinder chrome is always white-on-black regardless of system theme.
- 
-const CAMERA_WHITE = '#fff';
- 
-const CAMERA_BTN_BG = 'rgba(0,0,0,0.45)';
- 
-const SHUTTER_RING_BG = 'rgba(255,255,255,0.25)';
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -315,14 +340,46 @@ const styles = StyleSheet.create({
   },
   closeBtnText: { color: CAMERA_WHITE, fontSize: 16, fontWeight: '600' },
 
-  // shutter
+  // running total chip
+  totalChip: {
+    position: 'absolute',
+    right: spacing.md,
+    backgroundColor: HINT_BG,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+  },
+  totalChipText: { color: CAMERA_WHITE, fontSize: fontSizes.bodyLg, fontWeight: '700' },
+
+  // hint pill
+  hintPill: {
+    position: 'absolute',
+    alignSelf: 'center',
+    top: '30%',
+    backgroundColor: HINT_BG,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+  },
+  hintText: { color: CAMERA_WHITE, fontSize: fontSizes.caption, fontWeight: '500' },
+
+  // shutter row
   shutterBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
+  },
+  shutterSideSlot: {
+    width: touchTarget.shutter,
+    height: touchTarget.shutter,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   shutter: {
     width: touchTarget.shutter,
@@ -340,6 +397,17 @@ const styles = StyleSheet.create({
     borderRadius: (touchTarget.shutter - 20) / 2,
     backgroundColor: CAMERA_WHITE,
   },
+  countBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: CAMERA_BTN_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: CAMERA_WHITE,
+  },
+  countBadgeText: { color: CAMERA_WHITE, fontSize: fontSizes.body, fontWeight: '700' },
 
   // review sheet
   sheetWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
@@ -355,7 +423,7 @@ const styles = StyleSheet.create({
   ocrNotice: { fontSize: fontSizes.caption, textAlign: 'center', fontStyle: 'italic' },
 
   field: { gap: spacing.xs },
-  label: { fontSize: fontSizes.caption, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  fieldLabel: { fontSize: fontSizes.caption, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   input: {
     height: touchTarget.min,
     borderWidth: 1,

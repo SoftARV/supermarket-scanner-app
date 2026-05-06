@@ -5,9 +5,10 @@ import { useTheme, fontSizes, radius, spacing } from '@/theme';
 interface Props {
   spent: number;
   budget: number;
+  hideLabels?: boolean;
 }
 
-export function BudgetBar({ spent, budget }: Props) {
+export function BudgetBar({ spent, budget, hideLabels = false }: Props) {
   const c = useTheme();
   const ratio = Math.min(spent / budget, 1);
   const over = spent > budget;
@@ -19,16 +20,18 @@ export function BudgetBar({ spent, budget }: Props) {
       <View style={[styles.track, { backgroundColor: c.surface2 }]}>
         <View style={[styles.fill, { backgroundColor: fillColor, width: `${ratio * 100}%` }]} />
       </View>
-      <View style={styles.labels}>
-        <Text style={[styles.label, { color: c.muted }]}>
-          €{spent.toFixed(2)} spent
-        </Text>
-        <Text style={[styles.label, { color: over ? c.pop : c.muted }]}>
-          {over
-            ? `€${Math.abs(remaining).toFixed(2)} over`
-            : `€${remaining.toFixed(2)} left`}
-        </Text>
-      </View>
+      {!hideLabels && (
+        <View style={styles.labels}>
+          <Text style={[styles.label, { color: c.muted }]}>
+            €{spent.toFixed(2)} spent
+          </Text>
+          <Text style={[styles.label, { color: over ? c.pop : c.muted }]}>
+            {over
+              ? `€${Math.abs(remaining).toFixed(2)} over`
+              : `€${remaining.toFixed(2)} left`}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

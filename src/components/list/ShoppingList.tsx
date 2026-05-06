@@ -1,13 +1,12 @@
 import React, { useCallback } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { ItemCard } from '@/components/list/ItemCard';
-import { useTheme, fontSizes, ITEM_HEIGHT, spacing } from '@/theme';
+import { useTheme, fontSizes, spacing } from '@/theme';
 import { type ScannedItem } from '@/types';
 
 interface Props {
   items: ScannedItem[];
   onRemove: (id: string) => void;
-  onUpdateQuantity: (id: string, quantity: number) => void;
 }
 
 const EmptyState = React.memo(function EmptyState() {
@@ -21,47 +20,36 @@ const EmptyState = React.memo(function EmptyState() {
   );
 });
 
-export const ShoppingList = React.memo(function ShoppingList({
-  items,
-  onRemove,
-  onUpdateQuantity,
-}: Props) {
+const Separator = () => <View style={styles.separator} />;
+
+export const ShoppingList = React.memo(function ShoppingList({ items, onRemove }: Props) {
   const renderItem = useCallback(
-    ({ item }: { item: ScannedItem }) => (
-      <ItemCard item={item} onRemove={onRemove} onUpdateQuantity={onUpdateQuantity} />
-    ),
-    [onRemove, onUpdateQuantity],
+    ({ item }: { item: ScannedItem }) => <ItemCard item={item} onRemove={onRemove} />,
+    [onRemove],
   );
 
   const keyExtractor = useCallback((item: ScannedItem) => item.id, []);
-
-  const getItemLayout = useCallback(
-    (_: ArrayLike<ScannedItem> | null | undefined, index: number) => ({
-      length: ITEM_HEIGHT,
-      offset: ITEM_HEIGHT * index,
-      index,
-    }),
-    [],
-  );
 
   return (
     <FlatList
       data={items}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
-      getItemLayout={getItemLayout}
       ListEmptyComponent={EmptyState}
+      ItemSeparatorComponent={Separator}
       removeClippedSubviews
       maxToRenderPerBatch={12}
       windowSize={5}
       initialNumToRender={12}
-      contentContainerStyle={items.length === 0 ? styles.emptyContainer : undefined}
+      contentContainerStyle={items.length === 0 ? styles.emptyContainer : styles.listContent}
     />
   );
 });
 
 const styles = StyleSheet.create({
   emptyContainer: { flex: 1 },
+  listContent: { padding: spacing.md, paddingTop: spacing.sm },
+  separator: { height: spacing.sm },
   empty: {
     flex: 1,
     alignItems: 'center',

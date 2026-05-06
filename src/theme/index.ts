@@ -62,6 +62,7 @@ export const fontSizes = {
   large: 24,
   price: 32,
   hero: 56,
+  hero2: 64,
 };
 
 // ─── Spacing ─────────────────────────────────────────────────────

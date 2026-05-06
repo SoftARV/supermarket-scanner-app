@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TotalDisplay } from '@/components/ui/TotalDisplay';
 import { useAppContext } from '@/context/AppContext';
@@ -15,7 +15,7 @@ export default function FinishTripScreen() {
   const c = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
-  const { activeTrip, finishTrip } = useAppContext();
+  const { activeTrip, finishTrip, discardTrip } = useAppContext();
 
   const items = activeTrip?.items ?? [];
   const total = activeTrip?.total ?? 0;
@@ -26,6 +26,25 @@ export default function FinishTripScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     finishTrip();
     navigation.navigate('History');
+  };
+
+  const handleKeepScanning = () => {
+    navigation.goBack();
+  };
+
+  const handleDiscard = () => {
+    Alert.alert('Discard trip', 'This will delete all scanned items.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Discard',
+        style: 'destructive',
+        onPress: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          discardTrip();
+          navigation.navigate('History');
+        },
+      },
+    ]);
   };
 
   return (
@@ -39,8 +58,12 @@ export default function FinishTripScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <View style={[styles.totalCard, { backgroundColor: c.surface, borderColor: c.hairline }]}>
-          <Text style={[styles.totalLabel, { color: c.muted }]}>Total spent</Text>
+        {/* Check circle hero */}
+        <View style={[styles.heroCard, { backgroundColor: c.surface, borderColor: c.hairline }]}>
+          <View style={[styles.checkCircle, { backgroundColor: c.accentSoft }]}>
+            <Text style={[styles.checkIcon, { color: c.accent }]}>✓</Text>
+          </View>
+          <Text style={[styles.heroLabel, { color: c.muted }]}>Total spent</Text>
           <TotalDisplay total={total} size="lg" />
           {budget !== null && (
             <Text style={[styles.budgetLine, { color: overBudget ? c.pop : c.muted }]}>
@@ -76,6 +99,12 @@ export default function FinishTripScreen() {
         >
           <Text style={[styles.confirmBtnLabel, { color: c.accentInk }]}>Save trip</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.secondaryBtn} onPress={handleKeepScanning}>
+          <Text style={[styles.secondaryBtnLabel, { color: c.ink }]}>Keep scanning</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.discardBtn} onPress={handleDiscard}>
+          <Text style={[styles.discardBtnLabel, { color: c.pop }]}>Discard trip</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -95,15 +124,24 @@ const styles = StyleSheet.create({
   headerSpacer: { width: 52 },
   title: { fontSize: fontSizes.title, fontWeight: '700' },
   body: { padding: spacing.md, gap: spacing.sm },
-  totalCard: {
+  heroCard: {
     borderRadius: radius.lg,
     borderWidth: 1,
     padding: spacing.lg,
     alignItems: 'center',
     marginBottom: spacing.md,
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
-  totalLabel: { fontSize: fontSizes.body, fontWeight: '500' },
+  checkCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+  },
+  checkIcon: { fontSize: 28, fontWeight: '700' },
+  heroLabel: { fontSize: fontSizes.body, fontWeight: '500' },
   budgetLine: { fontSize: fontSizes.body, fontWeight: '500' },
   sectionLabel: {
     fontSize: fontSizes.caption,
@@ -124,7 +162,7 @@ const styles = StyleSheet.create({
   itemName: { fontSize: fontSizes.bodyLg, fontWeight: '600' },
   itemMeta: { fontSize: fontSizes.caption },
   itemTotal: { fontSize: fontSizes.bodyLg, fontWeight: '700', marginLeft: spacing.sm },
-  footer: { padding: spacing.md, borderTopWidth: 1 },
+  footer: { padding: spacing.md, borderTopWidth: 1, gap: spacing.sm },
   confirmBtn: {
     height: touchTarget.fab,
     borderRadius: radius.full,
@@ -132,4 +170,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   confirmBtnLabel: { fontSize: fontSizes.title, fontWeight: '700' },
+  secondaryBtn: {
+    height: touchTarget.min,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryBtnLabel: { fontSize: fontSizes.bodyLg, fontWeight: '600' },
+  discardBtn: {
+    height: touchTarget.min,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  discardBtnLabel: { fontSize: fontSizes.body, fontWeight: '500' },
 });
