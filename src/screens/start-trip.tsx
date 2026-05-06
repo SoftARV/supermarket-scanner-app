@@ -80,15 +80,15 @@ export default function StartTripScreen() {
     startTrip(store.trim(), budget);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     navigation.dispatch(
-      CommonActions.reset({ index: 1, routes: [{ name: "History" }, { name: "ActiveList" }] })
+      CommonActions.reset({
+        index: 1,
+        routes: [{ name: "History" }, { name: "ActiveList" }],
+      }),
     );
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: c.bg }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    <View style={[styles.container, { backgroundColor: c.bg }]}>
       {/* Nav bar */}
       <View style={[styles.navBar, { paddingTop: insets.top + spacing.xs }]}>
         <TouchableOpacity
@@ -118,208 +118,217 @@ export default function StartTripScreen() {
         <View style={styles.navSpacer} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.form}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={styles.grow}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* Heading */}
-        <View style={styles.headingBlock}>
-          <Text
-            style={[styles.heading, { color: c.ink, fontFamily: fonts.serif }]}
-          >
-            Start a trip
-          </Text>
-          <Text
-            style={[
-              styles.subheading,
-              { color: c.muted, fontFamily: fonts.sans600 },
-            ]}
-          >
-            WHERE ARE YOU SHOPPING?
-          </Text>
-        </View>
-
-        {/* Store name */}
-        <View style={styles.field}>
-          <Text
-            style={[
-              styles.fieldLabel,
-              { color: c.muted, fontFamily: fonts.sans600 },
-            ]}
-          >
-            NAME
-          </Text>
-          <View
-            style={[
-              styles.inputUnderline,
-              { borderBottomColor: storeError ? c.pop : c.ink },
-            ]}
-          >
-            <TextInput
-              style={[
-                styles.storeInput,
-                { color: c.ink, fontFamily: fonts.sans600 },
-              ]}
-              placeholder="e.g. Mercadona"
-              placeholderTextColor={c.muted}
-              value={store}
-              onChangeText={(t) => {
-                setStore(t);
-                setStoreError(false);
-              }}
-              returnKeyType="done"
-              keyboardAppearance={keyboardAppearance}
-              autoFocus
-            />
-          </View>
-          {storeError && (
+        <ScrollView
+          contentContainerStyle={styles.form}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Heading */}
+          <View style={styles.headingBlock}>
             <Text
               style={[
-                styles.errorText,
-                { color: c.pop, fontFamily: fonts.sans },
+                styles.heading,
+                { color: c.ink, fontFamily: fonts.serif },
               ]}
             >
-              Store name is required
-            </Text>
-          )}
-        </View>
-
-        {/* Store presets */}
-        <View style={styles.presetRow}>
-          {STORE_PRESETS.map((preset) => (
-            <TouchableOpacity
-              key={preset}
-              style={[
-                styles.presetChip,
-                {
-                  backgroundColor: store === preset ? c.accentSoft : c.surface,
-                },
-              ]}
-              onPress={() => {
-                setStore(preset);
-                setStoreError(false);
-              }}
-            >
-              <Text
-                style={[
-                  styles.presetText,
-                  {
-                    color: store === preset ? c.accent : c.muted,
-                    fontFamily: fonts.sans600,
-                  },
-                ]}
-              >
-                {preset}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Budget toggle */}
-        <View style={[styles.toggleRow]}>
-          <View>
-            <Text
-              style={[
-                styles.toggleLabel,
-                { color: c.ink, fontFamily: fonts.sans600 },
-              ]}
-            >
-              Set a budget
+              Start a trip
             </Text>
             <Text
               style={[
-                styles.toggleSub,
-                { color: c.muted, fontFamily: fonts.sans },
+                styles.subheading,
+                { color: c.muted, fontFamily: fonts.sans600 },
               ]}
             >
-              Warn me as I get close
+              WHERE ARE YOU SHOPPING?
             </Text>
           </View>
-          <Switch
-            value={budgetEnabled}
-            onValueChange={handleBudgetToggle}
-            trackColor={{ false: c.surface2, true: c.accent }}
-            thumbColor="#fff"
-          />
-        </View>
 
-        {budgetEnabled && (
-          <View
-            style={[
-              styles.budgetCard,
-              { backgroundColor: c.surface, borderColor: c.hairline },
-            ]}
-          >
+          {/* Store name */}
+          <View style={styles.field}>
             <Text
               style={[
                 styles.fieldLabel,
                 { color: c.muted, fontFamily: fonts.sans600 },
               ]}
             >
-              LIMIT
+              NAME
             </Text>
-
-            {/* Display amount */}
-            <View style={styles.budgetAmountRow}>
-              <Text
-                style={[
-                  styles.budgetSymbol,
-                  { color: c.muted, fontFamily: fonts.serif },
-                ]}
-              >
-                €
-              </Text>
+            <View
+              style={[
+                styles.inputUnderline,
+                { borderBottomColor: storeError ? c.pop : c.ink },
+              ]}
+            >
               <TextInput
-                ref={budgetRef}
                 style={[
-                  styles.budgetInput,
-                  { color: c.ink, fontFamily: fonts.serif },
+                  styles.storeInput,
+                  { color: c.ink, fontFamily: fonts.sans600 },
                 ]}
-                placeholder="0"
+                placeholder="e.g. Mercadona"
                 placeholderTextColor={c.muted}
-                value={budgetText}
-                onChangeText={setBudgetText}
-                keyboardType="decimal-pad"
+                value={store}
+                onChangeText={(t) => {
+                  setStore(t);
+                  setStoreError(false);
+                }}
                 returnKeyType="done"
                 keyboardAppearance={keyboardAppearance}
-                onSubmitEditing={handleStart}
+                autoFocus
               />
             </View>
+            {storeError && (
+              <Text
+                style={[
+                  styles.errorText,
+                  { color: c.pop, fontFamily: fonts.sans },
+                ]}
+              >
+                Store name is required
+              </Text>
+            )}
+          </View>
 
-            {/* Budget presets */}
-            <View style={styles.budgetPresets}>
-              {BUDGET_PRESETS.map((v) => {
-                const selected = budgetDisplay === v;
-                return (
-                  <TouchableOpacity
-                    key={v}
-                    style={[
-                      styles.budgetPresetChip,
-                      {
-                        backgroundColor: selected ? c.accent : c.surface2,
-                        borderColor: selected ? c.accent : c.hairline,
-                      },
-                    ]}
-                    onPress={() => setBudgetText(String(v))}
-                  >
-                    <Text
+          {/* Store presets */}
+          <View style={styles.presetRow}>
+            {STORE_PRESETS.map((preset) => (
+              <TouchableOpacity
+                key={preset}
+                style={[
+                  styles.presetChip,
+                  {
+                    backgroundColor:
+                      store === preset ? c.accentSoft : c.surface,
+                  },
+                ]}
+                onPress={() => {
+                  setStore(preset);
+                  setStoreError(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.presetText,
+                    {
+                      color: store === preset ? c.accent : c.muted,
+                      fontFamily: fonts.sans600,
+                    },
+                  ]}
+                >
+                  {preset}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Budget toggle */}
+          <View style={[styles.toggleRow]}>
+            <View>
+              <Text
+                style={[
+                  styles.toggleLabel,
+                  { color: c.ink, fontFamily: fonts.sans600 },
+                ]}
+              >
+                Set a budget
+              </Text>
+              <Text
+                style={[
+                  styles.toggleSub,
+                  { color: c.muted, fontFamily: fonts.sans },
+                ]}
+              >
+                Warn me as I get close
+              </Text>
+            </View>
+            <Switch
+              value={budgetEnabled}
+              onValueChange={handleBudgetToggle}
+              trackColor={{ false: c.surface2, true: c.accent }}
+              thumbColor="#fff"
+            />
+          </View>
+
+          {budgetEnabled && (
+            <View
+              style={[
+                styles.budgetCard,
+                { backgroundColor: c.surface, borderColor: c.hairline },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.fieldLabel,
+                  { color: c.muted, fontFamily: fonts.sans600 },
+                ]}
+              >
+                LIMIT
+              </Text>
+
+              {/* Display amount */}
+              <View style={styles.budgetAmountRow}>
+                <Text
+                  style={[
+                    styles.budgetSymbol,
+                    { color: c.muted, fontFamily: fonts.serif },
+                  ]}
+                >
+                  €
+                </Text>
+                <TextInput
+                  ref={budgetRef}
+                  style={[
+                    styles.budgetInput,
+                    { color: c.ink, fontFamily: fonts.serif },
+                  ]}
+                  placeholder="0"
+                  placeholderTextColor={c.muted}
+                  value={budgetText}
+                  onChangeText={setBudgetText}
+                  keyboardType="decimal-pad"
+                  returnKeyType="done"
+                  keyboardAppearance={keyboardAppearance}
+                  onSubmitEditing={handleStart}
+                />
+              </View>
+
+              {/* Budget presets */}
+              <View style={styles.budgetPresets}>
+                {BUDGET_PRESETS.map((v) => {
+                  const selected = budgetDisplay === v;
+                  return (
+                    <TouchableOpacity
+                      key={v}
                       style={[
-                        styles.budgetPresetText,
+                        styles.budgetPresetChip,
                         {
-                          color: selected ? c.accentInk : c.ink,
-                          fontFamily: fonts.sans600,
+                          backgroundColor: selected ? c.accent : c.surface2,
+                          borderColor: selected ? c.accent : c.hairline,
                         },
                       ]}
+                      onPress={() => setBudgetText(String(v))}
                     >
-                      €{v}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+                      <Text
+                        style={[
+                          styles.budgetPresetText,
+                          {
+                            color: selected ? c.accentInk : c.ink,
+                            fontFamily: fonts.sans600,
+                          },
+                        ]}
+                      >
+                        €{v}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <View
         style={[
@@ -348,12 +357,13 @@ export default function StartTripScreen() {
           <ChevronRight size={20} color={c.accentInk} strokeWidth={1.8} />
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  grow: { flex: 1 },
 
   navBar: {
     flexDirection: "row",
