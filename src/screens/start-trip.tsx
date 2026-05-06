@@ -290,7 +290,6 @@ export default function StartTripScreen() {
                   keyboardType="decimal-pad"
                   returnKeyType="done"
                   keyboardAppearance={keyboardAppearance}
-                  onSubmitEditing={handleStart}
                 />
               </View>
 
