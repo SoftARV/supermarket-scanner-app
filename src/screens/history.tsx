@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Plus, TrendingUp, TrendingDown } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,7 +41,7 @@ export default function HistoryScreen() {
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.headerTopRow}>
           <View style={{ flex: 1 }} />
-          <Text style={[styles.trendIcon, { color: c.muted }]}>↗</Text>
+          <TrendingUp size={18} color={c.muted} strokeWidth={1.6} />
         </View>
         <Text style={[styles.title, { color: c.ink, fontFamily: fonts.serif }]}>History</Text>
         {thisMonth.length > 0 && (
@@ -52,14 +53,19 @@ export default function HistoryScreen() {
               €{thisTotal.toFixed(2)}
             </Text>
             {pctChange !== null && (
-              <Text
-                style={[
-                  styles.pctBadge,
-                  { color: pctChange <= 0 ? c.accent : c.pop, fontFamily: fonts.sans600 },
-                ]}
-              >
-                {pctChange <= 0 ? '↓' : '↑'} {Math.abs(pctChange)}% vs last
-              </Text>
+              <View style={styles.pctBadgeRow}>
+                {pctChange <= 0
+                  ? <TrendingDown size={12} color={c.accent} strokeWidth={1.6} />
+                  : <TrendingUp size={12} color={c.pop} strokeWidth={1.6} />}
+                <Text
+                  style={[
+                    styles.pctBadge,
+                    { color: pctChange <= 0 ? c.accent : c.pop, fontFamily: fonts.sans600 },
+                  ]}
+                >
+                  {Math.abs(pctChange)}% vs last
+                </Text>
+              </View>
             )}
           </View>
         )}
@@ -95,8 +101,9 @@ export default function HistoryScreen() {
           accessibilityLabel="Start new trip"
           activeOpacity={0.85}
         >
+          <Plus size={18} color={c.accentInk} strokeWidth={1.8} />
           <Text style={[styles.startBtnLabel, { color: c.accentInk, fontFamily: fonts.sans700 }]}>
-            + Start a new trip
+            Start a new trip
           </Text>
         </TouchableOpacity>
       </View>
@@ -116,7 +123,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 36,
   },
-  trendIcon: { fontSize: 18 },
   title: { fontSize: 32, fontWeight: '500', letterSpacing: -0.8, marginTop: 2 },
   monthRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, marginTop: spacing.xs },
   monthLabel: { fontSize: fontSizes.caption, letterSpacing: 0.6 },
@@ -131,6 +137,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   startBtnLabel: { fontSize: fontSizes.bodyLg, fontWeight: '600' },
+  pctBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
 });

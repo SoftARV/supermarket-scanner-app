@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
+import { X, Zap } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -188,7 +189,7 @@ export default function CameraScreen() {
           accessibilityLabel="Close camera"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={styles.closeBtnText}>✕</Text>
+          <X size={14} color={CAMERA_WHITE} strokeWidth={1.8} />
         </TouchableOpacity>
       </View>
 
@@ -200,7 +201,7 @@ export default function CameraScreen() {
             onPress={toggleFlash}
             accessibilityLabel="Toggle flash"
           >
-            <Text style={styles.sideBtnText}>⚡</Text>
+            <Zap size={18} color={flashMode === 'on' ? CAMERA_WHITE : 'rgba(255,255,255,0.7)'} strokeWidth={1.6} fill={flashMode === 'on' ? CAMERA_WHITE : 'none'} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -394,7 +395,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeBtnText: { color: CAMERA_WHITE, fontSize: 14, fontWeight: '600' },
 
   // shutter
   shutterBar: {
@@ -421,7 +421,6 @@ const styles = StyleSheet.create({
     borderColor: CAMERA_WHITE,
   },
   sideBtnSpacer: { opacity: 0 },
-  sideBtnText: { color: CAMERA_WHITE, fontSize: 11, fontWeight: '600' },
   shutter: {
     width: touchTarget.shutter,
     height: touchTarget.shutter,

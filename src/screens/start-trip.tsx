@@ -1,6 +1,7 @@
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
+import { ChevronRight, X } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -94,14 +95,17 @@ export default function StartTripScreen() {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text
-            style={[
-              styles.navCancel,
-              { color: c.muted, fontFamily: fonts.sans500 },
-            ]}
-          >
-            ✕ Cancel
-          </Text>
+          <View style={styles.navCancelRow}>
+            <X size={14} color={c.muted} strokeWidth={1.8} />
+            <Text
+              style={[
+                styles.navCancel,
+                { color: c.muted, fontFamily: fonts.sans500 },
+              ]}
+            >
+              Cancel
+            </Text>
+          </View>
         </TouchableOpacity>
         <Text
           style={[
@@ -339,8 +343,9 @@ export default function StartTripScreen() {
               { color: c.accentInk, fontFamily: fonts.sans700 },
             ]}
           >
-            Start scanning →
+            Start scanning
           </Text>
+          <ChevronRight size={20} color={c.accentInk} strokeWidth={1.8} />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -357,6 +362,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
   },
+  navCancelRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   navCancel: { fontSize: 14 },
   navTitle: { fontSize: 13, letterSpacing: -0.1 },
   navSpacer: { width: 72 },
@@ -431,8 +437,10 @@ const styles = StyleSheet.create({
   startBtn: {
     height: touchTarget.fab,
     borderRadius: radius.full,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: spacing.sm,
   },
   startBtnLabel: { fontSize: fontSizes.title, fontWeight: "700" },
 });

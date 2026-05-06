@@ -1,6 +1,7 @@
+import { Minus, Plus } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme, fontSizes, fonts, radius, spacing, touchTarget } from '@/theme';
+import { useTheme, fonts, radius, spacing, touchTarget, fontSizes } from '@/theme';
 
 interface Props {
   quantity: number;
@@ -22,7 +23,7 @@ export const QuantityPicker = React.memo(function QuantityPicker({
         accessibilityLabel="Decrease quantity"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Text style={[styles.buttonText, { color: c.ink, fontFamily: fonts.sans700 }]}>−</Text>
+        <Minus size={18} color={c.ink} strokeWidth={1.8} />
       </TouchableOpacity>
       <Text style={[styles.quantity, { color: c.ink, fontFamily: fonts.sans700 }]}>{quantity}</Text>
       <TouchableOpacity
@@ -31,7 +32,7 @@ export const QuantityPicker = React.memo(function QuantityPicker({
         accessibilityLabel="Increase quantity"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Text style={[styles.buttonText, { color: c.ink, fontFamily: fonts.sans700 }]}>+</Text>
+        <Plus size={18} color={c.ink} strokeWidth={1.8} />
       </TouchableOpacity>
     </View>
   );
@@ -46,7 +47,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonText: { fontSize: fontSizes.title, fontWeight: '700' },
   quantity: {
     fontSize: fontSizes.title,
     fontWeight: '700',

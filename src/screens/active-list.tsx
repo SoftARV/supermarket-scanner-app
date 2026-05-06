@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
+import { Camera, ChevronLeft } from 'lucide-react-native';
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -43,7 +44,7 @@ export default function ActiveListScreen() {
           onPress={() => navigation.navigate('History')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={[styles.navBack, { color: c.muted, fontFamily: fonts.sans500 }]}>‹</Text>
+          <ChevronLeft size={22} color={c.muted} strokeWidth={1.8} />
           <Text style={[styles.navLeftLabel, { color: c.muted, fontFamily: fonts.sans500 }]}>History</Text>
         </TouchableOpacity>
 
@@ -104,7 +105,7 @@ export default function ActiveListScreen() {
           accessibilityLabel="Scan next item"
           activeOpacity={0.85}
         >
-          <Text style={[styles.scanBtnIcon, { color: c.accentInk }]}>📷</Text>
+          <Camera size={18} color={c.accentInk} strokeWidth={1.6} />
           <Text style={[styles.scanBtnLabel, { color: c.accentInk, fontFamily: fonts.sans700 }]}>
             Scan next item
           </Text>
@@ -129,7 +130,6 @@ const styles = StyleSheet.create({
     gap: 2,
     minWidth: 72,
   },
-  navBack: { fontSize: 22, lineHeight: 24 },
   navLeftLabel: { fontSize: 14 },
   navCenter: {
     flex: 1,
@@ -172,6 +172,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
   },
-  scanBtnIcon: { fontSize: 16 },
   scanBtnLabel: { fontSize: fontSizes.bodyLg, fontWeight: '700' },
 });

@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme, fonts, radius, spacing } from '@/theme';
@@ -15,7 +16,7 @@ export function LastAddedBadge({ item }: Props) {
   return (
     <View style={[styles.badge, { backgroundColor: c.accentSoft }]}>
       <View style={[styles.circle, { backgroundColor: c.accent }]}>
-        <Text style={[styles.check, { color: c.accentInk }]}>✓</Text>
+        <Check size={10} color={c.accentInk} strokeWidth={2.0} />
       </View>
       <Text style={[styles.label, { color: c.accent, fontFamily: fonts.sans600 }]} numberOfLines={1}>
         {label}
@@ -41,6 +42,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  check: { fontSize: 11, fontWeight: '700' },
   label: { fontSize: 12, fontWeight: '600' },
 });

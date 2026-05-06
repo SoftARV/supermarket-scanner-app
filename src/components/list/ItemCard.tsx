@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { Minus, Plus, X } from 'lucide-react-native';
 import React, { useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -8,7 +9,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { useTheme, fontSizes, fonts, spacing, ITEM_HEIGHT } from '@/theme';
+import { useTheme, fonts, spacing, ITEM_HEIGHT } from '@/theme';
 import { type ScannedItem } from '@/types';
 
 const DELETE_THRESHOLD = -90;
@@ -66,7 +67,7 @@ export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQ
   return (
     <View style={[styles.wrapper, { backgroundColor: c.pop }]}>
       <Animated.View style={[styles.deleteHint, deleteHintStyle]}>
-        <Text style={[styles.deleteIcon, { color: '#fff' }]}>✕</Text>
+        <X size={20} color="#fff" strokeWidth={1.8} />
       </Animated.View>
       <GestureDetector gesture={panGesture}>
         <Animated.View
@@ -84,7 +85,7 @@ export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQ
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               accessibilityLabel="Decrease quantity"
             >
-              <Text style={[styles.stepText, { color: item.quantity > 1 ? c.ink : c.muted, fontFamily: fonts.sans700 }]}>−</Text>
+              <Minus size={14} color={item.quantity > 1 ? c.ink : c.muted} strokeWidth={1.8} />
             </TouchableOpacity>
             <Text style={[styles.qtyText, { color: c.muted, fontFamily: fonts.sans600 }]}>×{item.quantity}</Text>
             <TouchableOpacity
@@ -93,7 +94,7 @@ export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQ
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               accessibilityLabel="Increase quantity"
             >
-              <Text style={[styles.stepText, { color: c.accentInk, fontFamily: fonts.sans700 }]}>+</Text>
+              <Plus size={14} color={c.accentInk} strokeWidth={1.8} />
             </TouchableOpacity>
           </View>
 
@@ -128,7 +129,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingRight: spacing.md,
   },
-  deleteIcon: { fontSize: fontSizes.title, fontWeight: '700' },
   row: {
     height: ITEM_HEIGHT,
     flexDirection: 'row',
@@ -152,7 +152,6 @@ const styles = StyleSheet.create({
   stepPlus: {
     borderRadius: 0,
   },
-  stepText: { fontSize: 16, fontWeight: '700', lineHeight: 18 },
   qtyText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.4, minWidth: 20, textAlign: 'center' },
   info: { flex: 1, gap: 2 },
   name: { fontSize: 14.5, fontWeight: '600', letterSpacing: -0.1 },

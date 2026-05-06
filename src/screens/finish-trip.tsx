@@ -1,6 +1,7 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
+import { Check, ChevronLeft } from 'lucide-react-native';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,7 +31,7 @@ export default function FinishTripScreen() {
   const handleConfirm = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     finishTrip();
-    navigation.navigate('History');
+    navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'History' }] }));
   };
 
   const handleKeepScanning = () => {
@@ -46,7 +47,7 @@ export default function FinishTripScreen() {
         onPress: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           discardTrip();
-          navigation.navigate('History');
+          navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'History' }] }));
         },
       },
     ]);
@@ -61,7 +62,7 @@ export default function FinishTripScreen() {
           onPress={handleKeepScanning}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={[styles.navBack, { color: c.muted, fontFamily: fonts.sans500 }]}>‹</Text>
+          <ChevronLeft size={22} color={c.muted} strokeWidth={1.8} />
           <Text style={[styles.navBackLabel, { color: c.muted, fontFamily: fonts.sans500 }]}>Keep adding</Text>
         </TouchableOpacity>
         <Text style={[styles.navTitle, { color: c.muted, fontFamily: fonts.sans500 }]}>Finish trip</Text>
@@ -72,7 +73,7 @@ export default function FinishTripScreen() {
         {/* Hero */}
         <View style={styles.hero}>
           <View style={[styles.checkCircle, { backgroundColor: c.accentSoft, borderColor: c.hairline }]}>
-            <Text style={[styles.checkIcon, { color: c.accent }]}>✓</Text>
+            <Check size={28} color={c.accent} strokeWidth={2.0} />
           </View>
           <Text style={[styles.heroTitle, { color: c.ink, fontFamily: fonts.serif }]}>Trip complete</Text>
           <Text style={[styles.heroSub, { color: c.muted, fontFamily: fonts.sans }]}>
@@ -113,9 +114,12 @@ export default function FinishTripScreen() {
                   <Text style={[styles.statsKey, { color: c.muted, fontFamily: fonts.sans }]}>
                     {over ? 'Over budget' : 'Under budget'}
                   </Text>
-                  <Text style={[styles.statsVal, { color: over ? c.pop : c.accent, fontFamily: fonts.serif }]}>
-                    {over ? '' : '✓ '}€{budgetDelta?.toFixed(2)}
-                  </Text>
+                  <View style={styles.budgetDeltaRow}>
+                    {!over && <Check size={12} color={c.accent} strokeWidth={2.0} />}
+                    <Text style={[styles.statsVal, { color: over ? c.pop : c.accent, fontFamily: fonts.serif }]}>
+                      €{budgetDelta?.toFixed(2)}
+                    </Text>
+                  </View>
                 </View>
               </>
             )}
@@ -177,7 +181,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   navLeft: { flexDirection: 'row', alignItems: 'center', gap: 2, flex: 1 },
-  navBack: { fontSize: 22, lineHeight: 24 },
   navBackLabel: { fontSize: 14 },
   navTitle: { fontSize: 13, letterSpacing: -0.1, flex: 1, textAlign: 'center' },
   navSpacer: { flex: 1 },
@@ -193,7 +196,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
   },
-  checkIcon: { fontSize: 28, fontWeight: '700' },
+  budgetDeltaRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   heroTitle: { fontSize: 28, fontWeight: '500', letterSpacing: -0.6 },
   heroSub: { fontSize: 12, marginTop: -2 },
 

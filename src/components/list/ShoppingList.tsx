@@ -1,3 +1,4 @@
+import { Camera } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { ItemCard } from '@/components/list/ItemCard';
@@ -15,7 +16,7 @@ export const EmptyListState = React.memo(function EmptyListState() {
   return (
     <View style={styles.empty}>
       <View style={[styles.emptyIcon, { backgroundColor: c.surface, borderColor: c.hairline }]}>
-        <Text style={[styles.emptyIconText, { color: c.accent }]}>📷</Text>
+        <Camera size={28} color={c.accent} strokeWidth={1.6} />
       </View>
       <Text style={[styles.emptyTitle, { color: c.ink, fontFamily: fonts.sans600 }]}>
         Scan your first item
@@ -70,7 +71,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyIconText: { fontSize: 26 },
   emptyTitle: { fontSize: fontSizes.bodyLg, fontWeight: '600', letterSpacing: -0.2, textAlign: 'center' },
   emptySubtitle: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
 });

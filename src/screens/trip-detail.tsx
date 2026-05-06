@@ -1,5 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ChevronLeft, List, MoreHorizontal, Share2 } from 'lucide-react-native';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -64,7 +65,7 @@ export default function TripDetailScreen() {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={[styles.navBack, { color: c.muted, fontFamily: fonts.sans500 }]}>‹</Text>
+          <ChevronLeft size={22} color={c.muted} strokeWidth={1.8} />
           <Text style={[styles.navBackLabel, { color: c.muted, fontFamily: fonts.sans500 }]}>History</Text>
         </TouchableOpacity>
         <Text style={[styles.navTitle, { color: c.muted, fontFamily: fonts.sans500 }]}>Past trip</Text>
@@ -73,7 +74,7 @@ export default function TripDetailScreen() {
           onPress={handleMore}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={[styles.moreBtn, { color: c.muted }]}>···</Text>
+          <MoreHorizontal size={20} color={c.muted} strokeWidth={1.6} />
         </TouchableOpacity>
       </View>
 
@@ -161,14 +162,16 @@ export default function TripDetailScreen() {
             onPress={() => {}}
             activeOpacity={0.75}
           >
-            <Text style={[styles.actionBtnLabel, { color: c.ink, fontFamily: fonts.sans600 }]}>↑ Share</Text>
+            <Share2 size={15} color={c.ink} strokeWidth={1.6} />
+            <Text style={[styles.actionBtnLabel, { color: c.ink, fontFamily: fonts.sans600 }]}>Share</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionBtn, { borderColor: c.hairline, backgroundColor: c.surface }]}
             onPress={() => {}}
             activeOpacity={0.75}
           >
-            <Text style={[styles.actionBtnLabel, { color: c.ink, fontFamily: fonts.sans600 }]}>☰ Reuse list</Text>
+            <List size={15} color={c.ink} strokeWidth={1.8} />
+            <Text style={[styles.actionBtnLabel, { color: c.ink, fontFamily: fonts.sans600 }]}>Reuse list</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -187,11 +190,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   navLeft: { flexDirection: 'row', alignItems: 'center', gap: 2, flex: 1 },
-  navBack: { fontSize: 22, lineHeight: 24 },
   navBackLabel: { fontSize: 14 },
   navTitle: { fontSize: 13, letterSpacing: -0.1, flex: 1, textAlign: 'center' },
   navRight: { flex: 1, alignItems: 'flex-end' },
-  moreBtn: { fontSize: 18, letterSpacing: 2 },
 
   body: { padding: spacing.md, gap: spacing.md },
 
@@ -255,8 +256,10 @@ const styles = StyleSheet.create({
     height: touchTarget.min - 4,
     borderRadius: radius.full,
     borderWidth: 1.2,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.xs,
   },
   actionBtnLabel: { fontSize: fontSizes.body, fontWeight: '600' },
 });
