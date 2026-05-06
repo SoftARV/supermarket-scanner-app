@@ -8,7 +8,6 @@ import { type ScannedItem } from '@/types';
 interface Props {
   items: ScannedItem[];
   onRemove: (id: string) => void;
-  onUpdateQuantity: (id: string, quantity: number) => void;
   onEdit: (item: ScannedItem) => void;
 }
 
@@ -29,7 +28,7 @@ export const EmptyListState = React.memo(function EmptyListState() {
   );
 });
 
-export const ShoppingList = React.memo(function ShoppingList({ items, onRemove, onUpdateQuantity, onEdit }: Props) {
+export const ShoppingList = React.memo(function ShoppingList({ items, onRemove, onEdit }: Props) {
   const c = useTheme();
 
   if (items.length === 0) {
@@ -43,7 +42,6 @@ export const ShoppingList = React.memo(function ShoppingList({ items, onRemove, 
           key={item.id}
           item={item}
           onRemove={onRemove}
-          onUpdateQuantity={onUpdateQuantity}
           onEdit={onEdit}
           showBorder={i < items.length - 1}
         />

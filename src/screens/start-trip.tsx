@@ -384,7 +384,8 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "600",
     letterSpacing: -0.4,
-    height: 40,
+    minHeight: 44,
+    includeFontPadding: false,
   },
   errorText: { fontSize: fontSizes.caption },
 

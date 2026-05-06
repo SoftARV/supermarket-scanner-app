@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
-import { Minus, Pencil, Plus, X } from 'lucide-react-native';
+import { Pencil, X } from 'lucide-react-native';
 import React, { useCallback } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -18,12 +18,11 @@ const EDIT_THRESHOLD = 90;
 interface Props {
   item: ScannedItem;
   onRemove: (id: string) => void;
-  onUpdateQuantity: (id: string, quantity: number) => void;
   onEdit: (item: ScannedItem) => void;
   showBorder?: boolean;
 }
 
-export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQuantity, onEdit, showBorder = true }: Props) {
+export const ItemCard = React.memo(function ItemCard({ item, onRemove, onEdit, showBorder = true }: Props) {
   const c = useTheme();
   const lineTotal = item.pricePerUnit * item.quantity;
   const translateX = useSharedValue(0);
@@ -37,17 +36,6 @@ export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQ
     translateX.value = withSpring(0);
     onEdit(item);
   }, [item, onEdit, translateX]);
-
-  const decrement = useCallback(() => {
-    if (item.quantity <= 1) return;
-    Haptics.selectionAsync();
-    onUpdateQuantity(item.id, item.quantity - 1);
-  }, [item.id, item.quantity, onUpdateQuantity]);
-
-  const increment = useCallback(() => {
-    Haptics.selectionAsync();
-    onUpdateQuantity(item.id, item.quantity + 1);
-  }, [item.id, item.quantity, onUpdateQuantity]);
 
   const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
@@ -94,25 +82,9 @@ export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQ
             cardStyle,
           ]}
         >
-          {/* Qty badge with stepper */}
+          {/* Qty badge */}
           <View style={[styles.qtyBadge, { backgroundColor: c.surface2 }]}>
-            <TouchableOpacity
-              style={styles.stepTouch}
-              onPress={decrement}
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-              accessibilityLabel="Decrease quantity"
-            >
-              <Minus size={14} color={item.quantity > 1 ? c.ink : c.muted} strokeWidth={1.8} />
-            </TouchableOpacity>
             <Text style={[styles.qtyText, { color: c.muted, fontFamily: fonts.sans600 }]}>×{item.quantity}</Text>
-            <TouchableOpacity
-              style={[styles.stepTouch, styles.stepPlus, { backgroundColor: c.accent }]}
-              onPress={increment}
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-              accessibilityLabel="Increase quantity"
-            >
-              <Plus size={14} color={c.accentInk} strokeWidth={1.8} />
-            </TouchableOpacity>
           </View>
 
           {/* Name + unit price */}
@@ -161,22 +133,13 @@ const styles = StyleSheet.create({
   },
   rowBorder: { borderBottomWidth: 1 },
   qtyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: 36,
     height: 36,
     borderRadius: 12,
-    overflow: 'hidden',
-  },
-  stepTouch: {
-    width: 26,
-    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepPlus: {
-    borderRadius: 0,
-  },
-  qtyText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.4, minWidth: 20, textAlign: 'center' },
+  qtyText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.4 },
   info: { flex: 1, gap: 2 },
   name: { fontSize: 14.5, fontWeight: '600', letterSpacing: -0.1 },
   unitPrice: { fontSize: 11 },

@@ -1,6 +1,17 @@
-import BottomSheet, { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import * as Haptics from 'expo-haptics';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import BottomSheet, {
+  BottomSheetBackdrop,
+  type BottomSheetBackdropProps,
+  BottomSheetScrollView,
+  BottomSheetTextInput,
+} from "@gorhom/bottom-sheet";
+import * as Haptics from "expo-haptics";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -9,15 +20,15 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CandidateChips } from '@/components/ui/CandidateChips';
-import { QuantityPicker } from '@/components/ui/QuantityPicker';
-import { useTheme, fontSizes, fonts, spacing, radius } from '@/theme';
-import { type OcrResult } from '@/types';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CandidateChips } from "@/components/ui/CandidateChips";
+import { QuantityPicker } from "@/components/ui/QuantityPicker";
+import { useTheme, fontSizes, fonts, spacing, radius } from "@/theme";
+import { type OcrResult } from "@/types";
 
 interface ReviewSheetProps {
-  mode: 'add' | 'edit';
+  mode: "add" | "edit";
   initialName?: string;
   initialPrice?: string;
   initialQuantity?: number;
@@ -29,8 +40,8 @@ interface ReviewSheetProps {
 
 export function ReviewSheet({
   mode,
-  initialName = '',
-  initialPrice = '',
+  initialName = "",
+  initialPrice = "",
   initialQuantity = 1,
   ocrResult,
   ocrLoading,
@@ -39,49 +50,69 @@ export function ReviewSheet({
 }: ReviewSheetProps) {
   const c = useTheme();
   const insets = useSafeAreaInsets();
-  const keyboardAppearance = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const keyboardAppearance = useColorScheme() === "dark" ? "dark" : "light";
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['62%', '90%'], []);
+  const snapPoints = useMemo(() => ["62%", "90%"], []);
 
   const [name, setName] = useState(initialName);
   const [price, setPrice] = useState(initialPrice);
   const [quantity, setQuantity] = useState(initialQuantity);
-  const [nameError, setNameError] = useState('');
+  const [nameError, setNameError] = useState("");
   const [nameEdited, setNameEdited] = useState(false);
   const [priceEdited, setPriceEdited] = useState(false);
 
   const priceRef = useRef<TextInput>(null);
   const nameRef = useRef<TextInput>(null);
 
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior="close"
+        opacity={0.4}
+      />
+    ),
+    [],
+  );
+
   // Populate fields from OCR result as it arrives (add mode only)
   useEffect(() => {
-    if (!ocrResult || mode !== 'add') return;
+    if (!ocrResult || mode !== "add") return;
     if (!nameEdited) setName(ocrResult.name);
-    if (!priceEdited) setPrice(ocrResult.price !== null ? ocrResult.price.toFixed(2) : '');
-    if (!ocrResult.name) nameRef.current?.focus();
-    else if (ocrResult.price === null) priceRef.current?.focus();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!priceEdited)
+      setPrice(ocrResult.price !== null ? ocrResult.price.toFixed(2) : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ocrResult]);
 
   const handleSubmit = useCallback(() => {
     if (!name.trim()) {
-      setNameError('Please enter a product name');
+      setNameError("Please enter a product name");
       nameRef.current?.focus();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
-    setNameError('');
+    setNameError("");
     onSubmit(name, price, quantity);
   }, [name, price, quantity, onSubmit]);
 
-  const formattedPriceCandidates = (ocrResult?.priceCandidates ?? []).map((p) => `€${p.toFixed(2)}`);
-  const currentPriceForChip = price ? `€${parseFloat(price.replace(',', '.')).toFixed(2)}` : '';
+  const formattedPriceCandidates = (ocrResult?.priceCandidates ?? []).map(
+    (p) => `€${p.toFixed(2)}`,
+  );
+  const currentPriceForChip = price
+    ? `€${parseFloat(price.replace(",", ".")).toFixed(2)}`
+    : "";
 
-  const parsedPrice = parseFloat(price.replace(',', '.')) || 0;
+  const parsedPrice = parseFloat(price.replace(",", ".")) || 0;
   const lineTotal = parsedPrice * quantity;
   const submitLabel =
-    mode === 'edit' ? 'Save changes' : lineTotal > 0 ? `Add  · €${lineTotal.toFixed(2)}` : 'Add to list';
-  const dismissLabel = mode === 'edit' ? 'Cancel' : 'Retry';
+    mode === "edit"
+      ? "Save changes"
+      : lineTotal > 0
+        ? `Add  · €${lineTotal.toFixed(2)}`
+        : "Add to list";
+  const dismissLabel = mode === "edit" ? "Cancel" : "Retry";
 
   return (
     <BottomSheet
@@ -89,48 +120,78 @@ export function ReviewSheet({
       index={0}
       snapPoints={snapPoints}
       enablePanDownToClose
+      backdropComponent={renderBackdrop}
       keyboardBehavior="extend"
       keyboardBlurBehavior="restore"
       backgroundStyle={{ backgroundColor: c.surface }}
-      handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: c.muted }]}
+      handleIndicatorStyle={[
+        styles.handleIndicator,
+        { backgroundColor: c.muted },
+      ]}
       onClose={onClose}
     >
       <BottomSheetScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + spacing.xl }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + spacing.xl },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
-        {mode === 'add' && !ocrLoading && ocrResult && (
+        {mode === "add" && !ocrLoading && ocrResult && (
           <View style={styles.extractionBadge}>
-            <View style={[styles.extractionDot, { backgroundColor: c.accent }]} />
-            <Text style={[styles.extractionText, { color: c.accent, fontFamily: fonts.sans600 }]}>
+            <View
+              style={[styles.extractionDot, { backgroundColor: c.accent }]}
+            />
+            <Text
+              style={[
+                styles.extractionText,
+                { color: c.accent, fontFamily: fonts.sans600 },
+              ]}
+            >
               {ocrResult.name || ocrResult.price !== null
-                ? 'EXTRACTED · REVIEW BELOW'
+                ? "EXTRACTED · REVIEW BELOW"
                 : "COULDN'T READ TAG — TYPE MANUALLY"}
             </Text>
           </View>
         )}
-        {mode === 'add' && ocrLoading && (
+        {mode === "add" && ocrLoading && (
           <View style={styles.loadingRow}>
             <ActivityIndicator size="small" color={c.accent} />
-            <Text style={[styles.loadingText, { color: c.muted, fontFamily: fonts.sans }]}>
+            <Text
+              style={[
+                styles.loadingText,
+                { color: c.muted, fontFamily: fonts.sans },
+              ]}
+            >
               Reading price tag…
             </Text>
           </View>
         )}
 
         <View style={styles.field}>
-          <Text style={[styles.fieldLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>ITEM</Text>
+          <Text
+            style={[
+              styles.fieldLabel,
+              { color: c.muted, fontFamily: fonts.sans600 },
+            ]}
+          >
+            ITEM
+          </Text>
           <BottomSheetTextInput
             ref={nameRef}
             style={[
               styles.nameInput,
-              { borderBottomColor: nameError ? c.pop : c.hairline, color: c.ink, fontFamily: fonts.sans600 },
+              {
+                borderBottomColor: nameError ? c.pop : c.hairline,
+                color: c.ink,
+                fontFamily: fonts.sans600,
+              },
             ]}
             value={name}
             onChangeText={(t) => {
               setName(t);
               setNameEdited(true);
-              if (t.trim()) setNameError('');
+              if (t.trim()) setNameError("");
             }}
             placeholder="e.g. Leche entera"
             placeholderTextColor={c.muted}
@@ -140,9 +201,16 @@ export function ReviewSheet({
             autoCapitalize="words"
           />
           {nameError ? (
-            <Text style={[styles.errorText, { color: c.pop, fontFamily: fonts.sans }]}>{nameError}</Text>
+            <Text
+              style={[
+                styles.errorText,
+                { color: c.pop, fontFamily: fonts.sans },
+              ]}
+            >
+              {nameError}
+            </Text>
           ) : null}
-          {mode === 'add' && !nameEdited && (
+          {mode === "add" && !nameEdited && (
             <CandidateChips
               candidates={ocrResult?.nameCandidates ?? []}
               currentValue={name}
@@ -154,34 +222,58 @@ export function ReviewSheet({
 
         <View style={styles.priceQtyRow}>
           <View style={styles.priceBlock}>
-            <Text style={[styles.fieldLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>PRICE</Text>
+            <Text
+              style={[
+                styles.fieldLabel,
+                { color: c.muted, fontFamily: fonts.sans600 },
+              ]}
+            >
+              PRICE
+            </Text>
             <BottomSheetTextInput
               ref={priceRef}
               style={[
                 styles.priceInput,
-                { borderBottomColor: c.hairline, color: c.ink, fontFamily: fonts.serif },
+                {
+                  borderBottomColor: c.hairline,
+                  color: c.ink,
+                  fontFamily: fonts.serif,
+                },
               ]}
               value={price}
-              onChangeText={(t) => { setPrice(t); setPriceEdited(true); }}
+              onChangeText={(t) => {
+                setPrice(t);
+                setPriceEdited(true);
+              }}
               placeholder="0,00"
               placeholderTextColor={c.muted}
               keyboardType="decimal-pad"
               returnKeyType="done"
               keyboardAppearance={keyboardAppearance}
             />
-            {mode === 'add' && !priceEdited && (
+            {mode === "add" && !priceEdited && (
               <CandidateChips
                 candidates={formattedPriceCandidates}
                 currentValue={currentPriceForChip}
-                onSelect={(v) => setPrice(v.replace('€', ''))}
+                onSelect={(v) => setPrice(v.replace("€", ""))}
                 testID="price-chips"
               />
             )}
           </View>
 
           <View style={styles.qtyBlock}>
-            <Text style={[styles.fieldLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>QTY</Text>
-            <QuantityPicker quantity={quantity} onChangeQuantity={setQuantity} />
+            <Text
+              style={[
+                styles.fieldLabel,
+                { color: c.muted, fontFamily: fonts.sans600 },
+              ]}
+            >
+              QTY
+            </Text>
+            <QuantityPicker
+              quantity={quantity}
+              onChangeQuantity={setQuantity}
+            />
           </View>
         </View>
 
@@ -191,7 +283,12 @@ export function ReviewSheet({
             onPress={() => bottomSheetRef.current?.close()}
             activeOpacity={0.75}
           >
-            <Text style={[styles.dismissBtnText, { color: c.ink, fontFamily: fonts.sans600 }]}>
+            <Text
+              style={[
+                styles.dismissBtnText,
+                { color: c.ink, fontFamily: fonts.sans600 },
+              ]}
+            >
               {dismissLabel}
             </Text>
           </TouchableOpacity>
@@ -200,7 +297,12 @@ export function ReviewSheet({
             onPress={handleSubmit}
             activeOpacity={0.85}
           >
-            <Text style={[styles.submitBtnText, { color: c.accentInk, fontFamily: fonts.sans700 }]}>
+            <Text
+              style={[
+                styles.submitBtnText,
+                { color: c.accentInk, fontFamily: fonts.sans700 },
+              ]}
+            >
               {submitLabel}
             </Text>
           </TouchableOpacity>
@@ -214,18 +316,23 @@ const styles = StyleSheet.create({
   scroll: { padding: spacing.md, gap: spacing.md },
   handleIndicator: { width: 36, height: 4 },
 
-  extractionBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing.xs },
+  extractionBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: spacing.xs,
+  },
   extractionDot: { width: 6, height: 6, borderRadius: 3 },
-  extractionText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
+  extractionText: { fontSize: 11, fontWeight: "600", letterSpacing: 0.5 },
 
-  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  loadingRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   loadingText: { fontSize: fontSizes.body },
 
   field: { gap: spacing.xs },
-  fieldLabel: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
+  fieldLabel: { fontSize: 11, fontWeight: "600", letterSpacing: 0.5 },
   nameInput: {
     fontSize: 19,
-    fontWeight: '600',
+    fontWeight: "600",
     letterSpacing: -0.3,
     borderBottomWidth: 1,
     paddingBottom: spacing.xs,
@@ -234,11 +341,15 @@ const styles = StyleSheet.create({
   },
   errorText: { fontSize: fontSizes.caption },
 
-  priceQtyRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.md },
+  priceQtyRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: spacing.md,
+  },
   priceBlock: { flex: 1, gap: spacing.xs },
   priceInput: {
     fontSize: 32,
-    fontWeight: '500',
+    fontWeight: "500",
     letterSpacing: -0.5,
     borderBottomWidth: 1,
     paddingBottom: spacing.xs,
@@ -247,22 +358,22 @@ const styles = StyleSheet.create({
   },
   qtyBlock: { gap: spacing.xs, paddingBottom: 2 },
 
-  actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  actions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
   dismissBtn: {
     height: 48,
     paddingHorizontal: spacing.md,
     borderRadius: radius.full,
     borderWidth: 1.2,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  dismissBtnText: { fontSize: fontSizes.body, fontWeight: '600' },
+  dismissBtnText: { fontSize: fontSizes.body, fontWeight: "600" },
   submitBtn: {
     flex: 1,
     height: 48,
     borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  submitBtnText: { fontSize: fontSizes.bodyLg, fontWeight: '700' },
+  submitBtnText: { fontSize: fontSizes.bodyLg, fontWeight: "700" },
 });

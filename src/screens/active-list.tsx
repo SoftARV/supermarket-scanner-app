@@ -18,7 +18,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'ActiveList'>;
 
 export default function ActiveListScreen() {
   const c = useTheme();
-  const { activeTrip, removeItem, updateQuantity, updateItem } = useAppContext();
+  const { activeTrip, removeItem, updateItem } = useAppContext();
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
   const [editingItem, setEditingItem] = useState<ScannedItem | null>(null);
@@ -102,7 +102,7 @@ export default function ActiveListScreen() {
 
         {/* Items card */}
         <View style={styles.itemsWrapper}>
-          <ShoppingList items={items} onRemove={removeItem} onUpdateQuantity={updateQuantity} onEdit={handleEdit} />
+          <ShoppingList items={items} onRemove={removeItem} onEdit={handleEdit} />
         </View>
       </ScrollView>
 

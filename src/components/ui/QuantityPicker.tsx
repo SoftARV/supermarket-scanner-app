@@ -1,7 +1,7 @@
-import { Minus, Plus } from 'lucide-react-native';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme, fonts, radius, spacing, touchTarget, fontSizes } from '@/theme';
+import { Minus, Plus } from "lucide-react-native";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTheme, fonts, radius } from "@/theme";
 
 interface Props {
   quantity: number;
@@ -16,41 +16,59 @@ export const QuantityPicker = React.memo(function QuantityPicker({
 }: Props) {
   const c = useTheme();
   return (
-    <View style={styles.row}>
+    <View style={[styles.container, { backgroundColor: c.surface2 }]}>
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: c.surface2 }]}
+        style={styles.minusBtn}
         onPress={() => onChangeQuantity(Math.max(min, quantity - 1))}
         accessibilityLabel="Decrease quantity"
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
       >
-        <Minus size={18} color={c.ink} strokeWidth={1.8} />
+        <Minus
+          size={18}
+          color={quantity <= min ? c.muted : c.ink}
+          strokeWidth={1.8}
+        />
       </TouchableOpacity>
-      <Text style={[styles.quantity, { color: c.ink, fontFamily: fonts.sans700 }]}>{quantity}</Text>
+      <Text
+        style={[styles.quantity, { color: c.ink, fontFamily: fonts.serif }]}
+      >
+        {quantity}
+      </Text>
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: c.surface2 }]}
+        style={[styles.plusBtn, { backgroundColor: c.accent }]}
         onPress={() => onChangeQuantity(quantity + 1)}
         accessibilityLabel="Increase quantity"
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
       >
-        <Plus size={18} color={c.ink} strokeWidth={1.8} />
+        <Plus size={18} color={c.accentInk} strokeWidth={1.8} />
       </TouchableOpacity>
     </View>
   );
 });
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  button: {
-    width: touchTarget.min,
-    height: touchTarget.min,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: radius.full,
+    padding: 4,
+  },
+  minusBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  plusBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
   quantity: {
-    fontSize: fontSizes.title,
-    fontWeight: '700',
+    fontSize: 18,
     minWidth: 32,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
