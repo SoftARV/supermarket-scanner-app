@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -22,18 +23,17 @@ import { QuantityPicker } from '@/components/ui/QuantityPicker';
 import { SheetHandle } from '@/components/ui/SheetHandle';
 import { useAppContext } from '@/context/AppContext';
 import { useOcrExtraction } from '@/hooks/useOcrExtraction';
-import { useTheme, fontSizes, spacing, touchTarget, radius } from '@/theme';
+import { useTheme, fontSizes, fonts, spacing, touchTarget, radius } from '@/theme';
 import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Camera'>;
 
 type Phase = 'viewfinder' | 'review';
 
-// Camera chrome is always white-on-black regardless of system theme.
 const CAMERA_WHITE = '#fff';
-const CAMERA_BTN_BG = 'rgba(0,0,0,0.45)';
+const CAMERA_BTN_BG = 'rgba(255,255,255,0.16)';
 const SHUTTER_RING_BG = 'rgba(255,255,255,0.25)';
-const HINT_BG = 'rgba(0,0,0,0.55)';
+const HINT_BG = 'rgba(0,0,0,0.4)';
 
 export default function CameraScreen() {
   const c = useTheme();
@@ -137,54 +137,79 @@ export default function CameraScreen() {
   const formattedPriceCandidates = (result?.priceCandidates ?? []).map((p) => `€${p.toFixed(2)}`);
   const currentPriceForChip = price ? `€${parseFloat(price.replace(',', '.')).toFixed(2)}` : '';
   const runningTotal = activeTrip?.total ?? 0;
+  const itemCount = activeTrip?.items.length ?? 0;
+
+  const parsedPrice = parseFloat(price.replace(',', '.')) || 0;
+  const lineTotal = parsedPrice * quantity;
+  const addBtnLabel = lineTotal > 0 ? `Add  · €${lineTotal.toFixed(2)}` : 'Add to list';
 
   if (!permission) return <View style={[styles.container, { backgroundColor: c.bg }]} />;
 
   return (
     // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
     <View style={[styles.container, { backgroundColor: '#000' }]}>
-      {/* Viewfinder */}
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
+      {/* Background: live viewfinder OR frozen captured frame */}
+      {phase === 'viewfinder' ? (
+        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
+      ) : capturedUri ? (
+        <Image source={{ uri: capturedUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      ) : null}
 
-      {/* Corner reticles */}
+      {/* Corner reticles — viewfinder only */}
       {phase === 'viewfinder' && (
         <View style={styles.reticleContainer} pointerEvents="none">
-          <View style={[styles.corner, styles.topLeft, styles.reticleColor]} />
-          <View style={[styles.corner, styles.topRight, styles.reticleColor]} />
-          <View style={[styles.corner, styles.bottomLeft, styles.reticleColor]} />
-          <View style={[styles.corner, styles.bottomRight, styles.reticleColor]} />
+          <View style={[styles.corner, styles.topLeft]} />
+          <View style={[styles.corner, styles.topRight]} />
+          <View style={[styles.corner, styles.bottomLeft]} />
+          <View style={[styles.corner, styles.bottomRight]} />
         </View>
       )}
 
-      {/* Close button */}
-      <TouchableOpacity
-        style={[styles.closeBtn, { top: insets.top + spacing.sm }]}
-        onPress={() => navigation.goBack()}
-        accessibilityLabel="Close camera"
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Text style={styles.closeBtnText}>✕</Text>
-      </TouchableOpacity>
+      {/* Top row: total chip (left) + close button (right) */}
+      <View style={[styles.topRow, { top: insets.top + spacing.sm }]}>
+        {phase === 'viewfinder' && (
+          <View style={styles.totalChip}>
+            <Text style={[styles.totalChipLabel, { fontFamily: fonts.sans600 }]}>TOTAL</Text>
+            <Text style={[styles.totalChipAmount, { fontFamily: fonts.serif }]}>
+              €{runningTotal.toFixed(2)}
+            </Text>
+            {itemCount > 0 && (
+              <Text style={styles.totalChipCount}>· {itemCount}</Text>
+            )}
+          </View>
+        )}
+        {phase === 'review' && (
+          <View style={styles.capturedChip}>
+            <Text style={styles.capturedChipText}>Captured</Text>
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.closeBtn}
+          onPress={() => navigation.goBack()}
+          accessibilityLabel="Close camera"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.closeBtnText}>✕</Text>
+        </TouchableOpacity>
+      </View>
 
-      {/* Running total chip */}
-      {phase === 'viewfinder' && (
-        <View style={[styles.totalChip, { top: insets.top + spacing.sm }]}>
-          <Text style={styles.totalChipText}>€{runningTotal.toFixed(2)}</Text>
-        </View>
-      )}
-
-      {/* Hint pill */}
+      {/* Hint pill — viewfinder only */}
       {phase === 'viewfinder' && (
         <View style={styles.hintPill} pointerEvents="none">
-          <Text style={styles.hintText}>Aim at price tag</Text>
+          <View style={[styles.hintDot, { backgroundColor: c.accent }]} />
+          <Text style={[styles.hintText, { fontFamily: fonts.sans500 }]}>
+            Price tag detected · tap to capture
+          </Text>
         </View>
       )}
 
-      {/* Shutter row */}
+      {/* Shutter row — viewfinder only */}
       {phase === 'viewfinder' && (
         <View style={[styles.shutterBar, { paddingBottom: insets.bottom + spacing.lg }]}>
-          {/* Left slot: flash placeholder */}
-          <View style={styles.shutterSideSlot} />
+          {/* Flash placeholder */}
+          <View style={[styles.sideBtn, styles.flashBtn]}>
+            <Text style={styles.sideBtnText}>⚡</Text>
+          </View>
 
           {/* Shutter */}
           <TouchableOpacity
@@ -196,13 +221,9 @@ export default function CameraScreen() {
             <View style={styles.shutterInner} />
           </TouchableOpacity>
 
-          {/* Right slot: item count badge */}
-          <View style={styles.shutterSideSlot}>
-            {(activeTrip?.items.length ?? 0) > 0 && (
-              <View style={styles.countBadge}>
-                <Text style={styles.countBadgeText}>{activeTrip?.items.length}</Text>
-              </View>
-            )}
+          {/* List badge */}
+          <View style={[styles.sideBtn, itemCount > 0 && styles.sideBtnActive]}>
+            <Text style={styles.sideBtnText}>{itemCount > 0 ? `${itemCount}` : 'List'}</Text>
           </View>
         </View>
       )}
@@ -220,26 +241,46 @@ export default function CameraScreen() {
               contentContainerStyle={[styles.sheetScroll, { paddingBottom: insets.bottom + spacing.xl }]}
               keyboardShouldPersistTaps="handled"
             >
+              {/* Extraction status badge */}
+              {!loading && result && (
+                <View style={styles.extractionBadge}>
+                  <View style={[styles.extractionDot, { backgroundColor: c.accent }]} />
+                  <Text style={[styles.extractionText, { color: c.accent, fontFamily: fonts.sans600 }]}>
+                    {result.name || result.price !== null
+                      ? 'EXTRACTED · REVIEW BELOW'
+                      : "COULDN'T READ TAG — TYPE MANUALLY"}
+                  </Text>
+                </View>
+              )}
+
               {loading && (
                 <View style={styles.loadingRow}>
                   <ActivityIndicator size="small" color={c.accent} />
-                  <Text style={[styles.loadingText, { color: c.muted }]}>Reading price tag…</Text>
+                  <Text style={[styles.loadingText, { color: c.muted, fontFamily: fonts.sans }]}>
+                    Reading price tag…
+                  </Text>
                 </View>
               )}
-              {result && !result.name && result.price === null && (
-                <Text style={[styles.ocrNotice, { color: c.muted }]}>
-                  Couldn&apos;t read tag — please type manually
-                </Text>
-              )}
 
-              {/* Name */}
+              {/* Item name */}
               <View style={styles.field}>
-                <Text style={[styles.fieldLabel, { color: c.muted }]}>Product name</Text>
+                <Text style={[styles.fieldLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>ITEM</Text>
                 <TextInput
                   ref={nameRef}
-                  style={[styles.input, { backgroundColor: c.surface2, borderColor: nameError ? c.pop : c.hairline, color: c.ink }]}
+                  style={[
+                    styles.nameInput,
+                    {
+                      borderBottomColor: nameError ? c.pop : c.hairline,
+                      color: c.ink,
+                      fontFamily: fonts.sans600,
+                    },
+                  ]}
                   value={name}
-                  onChangeText={(t) => { setName(t); setNameEdited(true); if (t.trim()) setNameError(''); }}
+                  onChangeText={(t) => {
+                    setName(t);
+                    setNameEdited(true);
+                    if (t.trim()) setNameError('');
+                  }}
                   placeholder="e.g. Leche entera"
                   placeholderTextColor={c.muted}
                   returnKeyType="next"
@@ -247,7 +288,9 @@ export default function CameraScreen() {
                   onSubmitEditing={() => priceRef.current?.focus()}
                   autoCapitalize="words"
                 />
-                {nameError ? <Text style={[styles.errorText, { color: c.pop }]}>{nameError}</Text> : null}
+                {nameError ? (
+                  <Text style={[styles.errorText, { color: c.pop, fontFamily: fonts.sans }]}>{nameError}</Text>
+                ) : null}
                 {!nameEdited && (
                   <CandidateChips
                     candidates={result?.nameCandidates ?? []}
@@ -258,47 +301,57 @@ export default function CameraScreen() {
                 )}
               </View>
 
-              {/* Price */}
-              <View style={styles.field}>
-                <Text style={[styles.fieldLabel, { color: c.muted }]}>Price (€)</Text>
-                <TextInput
-                  ref={priceRef}
-                  style={[styles.input, { backgroundColor: c.surface2, borderColor: c.hairline, color: c.ink }]}
-                  value={price}
-                  onChangeText={(t) => { setPrice(t); setPriceEdited(true); }}
-                  placeholder="0,00"
-                  placeholderTextColor={c.muted}
-                  keyboardType="decimal-pad"
-                  returnKeyType="done"
-                  keyboardAppearance={keyboardAppearance}
-                />
-                {!priceEdited && (
-                  <CandidateChips
-                    candidates={formattedPriceCandidates}
-                    currentValue={currentPriceForChip}
-                    onSelect={(v) => setPrice(v.replace('€', ''))}
-                    testID="price-chips"
+              {/* Price + Qty row */}
+              <View style={styles.priceQtyRow}>
+                <View style={styles.priceBlock}>
+                  <Text style={[styles.fieldLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>PRICE</Text>
+                  <TextInput
+                    ref={priceRef}
+                    style={[
+                      styles.priceInput,
+                      { borderBottomColor: c.hairline, color: c.ink, fontFamily: fonts.serif },
+                    ]}
+                    value={price}
+                    onChangeText={(t) => { setPrice(t); setPriceEdited(true); }}
+                    placeholder="0,00"
+                    placeholderTextColor={c.muted}
+                    keyboardType="decimal-pad"
+                    returnKeyType="done"
+                    keyboardAppearance={keyboardAppearance}
                   />
-                )}
-              </View>
+                  {!priceEdited && (
+                    <CandidateChips
+                      candidates={formattedPriceCandidates}
+                      currentValue={currentPriceForChip}
+                      onSelect={(v) => setPrice(v.replace('€', ''))}
+                      testID="price-chips"
+                    />
+                  )}
+                </View>
 
-              {/* Quantity */}
-              <View style={styles.field}>
-                <Text style={[styles.fieldLabel, { color: c.muted }]}>Quantity</Text>
-                <QuantityPicker quantity={quantity} onChangeQuantity={setQuantity} />
+                <View style={styles.qtyBlock}>
+                  <Text style={[styles.fieldLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>QTY</Text>
+                  <QuantityPicker quantity={quantity} onChangeQuantity={setQuantity} />
+                </View>
               </View>
 
               {/* Actions */}
               <View style={styles.actions}>
                 <TouchableOpacity
-                  style={[styles.addBtn, { backgroundColor: c.accent }]}
+                  style={[styles.retakeBtn, { borderColor: c.hairline }]}
+                  onPress={handleRetake}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.retakeBtnText, { color: c.ink, fontFamily: fonts.sans600 }]}>Retry</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.addBtn, { backgroundColor: c.accent, flex: 1 }]}
                   onPress={handleAdd}
                   activeOpacity={0.85}
                 >
-                  <Text style={[styles.addBtnText, { color: c.accentInk }]}>Add to list</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.retakeBtn} onPress={handleRetake}>
-                  <Text style={[styles.retakeBtnText, { color: c.muted }]}>Retake photo</Text>
+                  <Text style={[styles.addBtnText, { color: c.accentInk, fontFamily: fonts.sans700 }]}>
+                    {addBtnLabel}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -310,27 +363,53 @@ export default function CameraScreen() {
 }
 
 const CORNER_SIZE = 24;
-const CORNER_THICKNESS = 3;
+const CORNER_THICKNESS = 2.5;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
 
-  // reticle
+  // reticles
   reticleContainer: {
     ...StyleSheet.absoluteFillObject,
     margin: 48,
   },
-  corner: { position: 'absolute', width: CORNER_SIZE, height: CORNER_SIZE },
-  reticleColor: { borderColor: CAMERA_WHITE },
+  corner: { position: 'absolute', width: CORNER_SIZE, height: CORNER_SIZE, borderColor: CAMERA_WHITE },
   topLeft: { top: 0, left: 0, borderTopWidth: CORNER_THICKNESS, borderLeftWidth: CORNER_THICKNESS, borderTopLeftRadius: 4 },
   topRight: { top: 0, right: 0, borderTopWidth: CORNER_THICKNESS, borderRightWidth: CORNER_THICKNESS, borderTopRightRadius: 4 },
   bottomLeft: { bottom: 0, left: 0, borderBottomWidth: CORNER_THICKNESS, borderLeftWidth: CORNER_THICKNESS, borderBottomLeftRadius: 4 },
   bottomRight: { bottom: 0, right: 0, borderBottomWidth: CORNER_THICKNESS, borderRightWidth: CORNER_THICKNESS, borderBottomRightRadius: 4 },
 
-  // close
-  closeBtn: {
+  // top row
+  topRow: {
     position: 'absolute',
     left: spacing.md,
+    right: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    zIndex: 2,
+  },
+  totalChip: {
+    height: 36,
+    paddingHorizontal: spacing.md,
+    borderRadius: 18,
+    backgroundColor: CAMERA_BTN_BG,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  totalChipLabel: { color: CAMERA_WHITE, fontSize: 10, fontWeight: '600', letterSpacing: 0.6, opacity: 0.8 },
+  totalChipAmount: { color: CAMERA_WHITE, fontSize: 17, fontWeight: '600' },
+  totalChipCount: { color: CAMERA_WHITE, fontSize: 10, opacity: 0.7 },
+  capturedChip: {
+    height: 36,
+    paddingHorizontal: spacing.md,
+    borderRadius: 18,
+    backgroundColor: CAMERA_BTN_BG,
+    justifyContent: 'center',
+  },
+  capturedChipText: { color: CAMERA_WHITE, fontSize: 12 },
+  closeBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -338,32 +417,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeBtnText: { color: CAMERA_WHITE, fontSize: 16, fontWeight: '600' },
+  closeBtnText: { color: CAMERA_WHITE, fontSize: 14, fontWeight: '600' },
 
-  // running total chip
-  totalChip: {
-    position: 'absolute',
-    right: spacing.md,
-    backgroundColor: HINT_BG,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-  },
-  totalChipText: { color: CAMERA_WHITE, fontSize: fontSizes.bodyLg, fontWeight: '700' },
-
-  // hint pill
+  // hint
   hintPill: {
     position: 'absolute',
     alignSelf: 'center',
-    top: '30%',
+    top: '55%',
     backgroundColor: HINT_BG,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm - 2,
   },
-  hintText: { color: CAMERA_WHITE, fontSize: fontSizes.caption, fontWeight: '500' },
+  hintDot: { width: 6, height: 6, borderRadius: 3 },
+  hintText: { color: CAMERA_WHITE, fontSize: 12, fontWeight: '500', letterSpacing: -0.1 },
 
-  // shutter row
+  // shutter
   shutterBar: {
     position: 'absolute',
     bottom: 0,
@@ -371,16 +443,24 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
   },
-  shutterSideSlot: {
-    width: touchTarget.shutter,
-    height: touchTarget.shutter,
+  sideBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: CAMERA_BTN_BG,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  sideBtnActive: {
+    borderWidth: 2,
+    borderColor: CAMERA_WHITE,
+  },
+  flashBtn: {},
+  sideBtnText: { color: CAMERA_WHITE, fontSize: 11, fontWeight: '600' },
   shutter: {
     width: touchTarget.shutter,
     height: touchTarget.shutter,
@@ -388,59 +468,78 @@ const styles = StyleSheet.create({
     backgroundColor: SHUTTER_RING_BG,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
+    borderWidth: 4,
     borderColor: CAMERA_WHITE,
   },
   shutterInner: {
-    width: touchTarget.shutter - 20,
-    height: touchTarget.shutter - 20,
-    borderRadius: (touchTarget.shutter - 20) / 2,
+    width: touchTarget.shutter - 18,
+    height: touchTarget.shutter - 18,
+    borderRadius: (touchTarget.shutter - 18) / 2,
     backgroundColor: CAMERA_WHITE,
   },
-  countBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: CAMERA_BTN_BG,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: CAMERA_WHITE,
-  },
-  countBadgeText: { color: CAMERA_WHITE, fontSize: fontSizes.body, fontWeight: '700' },
 
   // review sheet
   sheetWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
   sheet: {
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
-    maxHeight: '85%',
+    maxHeight: '90%',
   },
   sheetScroll: { padding: spacing.md, gap: spacing.md },
 
+  extractionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: spacing.xs,
+  },
+  extractionDot: { width: 6, height: 6, borderRadius: 3 },
+  extractionText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
+
   loadingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   loadingText: { fontSize: fontSizes.body },
-  ocrNotice: { fontSize: fontSizes.caption, textAlign: 'center', fontStyle: 'italic' },
 
   field: { gap: spacing.xs },
-  fieldLabel: { fontSize: fontSizes.caption, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  input: {
-    height: touchTarget.min,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    fontSize: fontSizes.bodyLg,
+  fieldLabel: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
+  nameInput: {
+    fontSize: 19,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    borderBottomWidth: 1,
+    paddingBottom: spacing.xs,
+    paddingHorizontal: 0,
+    height: 40,
   },
   errorText: { fontSize: fontSizes.caption },
 
-  actions: { gap: spacing.sm, marginTop: spacing.xs },
+  priceQtyRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.md },
+  priceBlock: { flex: 1, gap: spacing.xs },
+  priceInput: {
+    fontSize: 32,
+    fontWeight: '500',
+    letterSpacing: -0.5,
+    borderBottomWidth: 1,
+    paddingBottom: spacing.xs,
+    paddingHorizontal: 0,
+    height: 48,
+  },
+  qtyBlock: { gap: spacing.xs, paddingBottom: 2 },
+
+  actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  retakeBtn: {
+    height: 48,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+    borderWidth: 1.2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retakeBtnText: { fontSize: fontSizes.body, fontWeight: '600' },
   addBtn: {
-    height: touchTarget.fab,
+    height: 48,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtnText: { fontSize: fontSizes.title, fontWeight: '700' },
-  retakeBtn: { height: touchTarget.min, alignItems: 'center', justifyContent: 'center' },
-  retakeBtnText: { fontSize: fontSizes.body, fontWeight: '500' },
+  addBtnText: { fontSize: fontSizes.bodyLg, fontWeight: '700' },
 });

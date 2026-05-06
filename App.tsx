@@ -1,3 +1,9 @@
+import {
+  InterTight_400Regular,
+  InterTight_500Medium,
+  InterTight_600SemiBold,
+  InterTight_700Bold,
+} from '@expo-google-fonts/inter-tight';
 import { Fraunces_500Medium, useFonts } from '@expo-google-fonts/fraunces';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -29,7 +35,13 @@ const DarkNavTheme = {
 };
 
 export default function App() {
-  const [fontsLoaded] = useFonts({ Fraunces_500Medium });
+  const [fontsLoaded] = useFonts({
+    Fraunces_500Medium,
+    InterTight_400Regular,
+    InterTight_500Medium,
+    InterTight_600SemiBold,
+    InterTight_700Bold,
+  });
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
 

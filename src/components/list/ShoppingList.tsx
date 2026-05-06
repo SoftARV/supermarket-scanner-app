@@ -1,63 +1,76 @@
-import React, { useCallback } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { ItemCard } from '@/components/list/ItemCard';
-import { useTheme, fontSizes, spacing } from '@/theme';
+import { useTheme, fontSizes, fonts, spacing, radius } from '@/theme';
 import { type ScannedItem } from '@/types';
 
 interface Props {
   items: ScannedItem[];
   onRemove: (id: string) => void;
+  onUpdateQuantity: (id: string, quantity: number) => void;
 }
 
-const EmptyState = React.memo(function EmptyState() {
+export const EmptyListState = React.memo(function EmptyListState() {
   const c = useTheme();
   return (
     <View style={styles.empty}>
-      <Text style={styles.emptyIcon}>🛒</Text>
-      <Text style={[styles.emptyTitle, { color: c.ink }]}>Your basket is empty</Text>
-      <Text style={[styles.emptySubtitle, { color: c.muted }]}>Tap the scan button to add items</Text>
+      <View style={[styles.emptyIcon, { backgroundColor: c.surface, borderColor: c.hairline }]}>
+        <Text style={[styles.emptyIconText, { color: c.accent }]}>📷</Text>
+      </View>
+      <Text style={[styles.emptyTitle, { color: c.ink, fontFamily: fonts.sans600 }]}>
+        Scan your first item
+      </Text>
+      <Text style={[styles.emptySubtitle, { color: c.muted, fontFamily: fonts.sans }]}>
+        Point at a price tag{'\n'}and tap to capture
+      </Text>
     </View>
   );
 });
 
-const Separator = () => <View style={styles.separator} />;
+export const ShoppingList = React.memo(function ShoppingList({ items, onRemove, onUpdateQuantity }: Props) {
+  const c = useTheme();
 
-export const ShoppingList = React.memo(function ShoppingList({ items, onRemove }: Props) {
-  const renderItem = useCallback(
-    ({ item }: { item: ScannedItem }) => <ItemCard item={item} onRemove={onRemove} />,
-    [onRemove],
-  );
-
-  const keyExtractor = useCallback((item: ScannedItem) => item.id, []);
+  if (items.length === 0) {
+    return <EmptyListState />;
+  }
 
   return (
-    <FlatList
-      data={items}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-      ListEmptyComponent={EmptyState}
-      ItemSeparatorComponent={Separator}
-      removeClippedSubviews
-      maxToRenderPerBatch={12}
-      windowSize={5}
-      initialNumToRender={12}
-      contentContainerStyle={items.length === 0 ? styles.emptyContainer : styles.listContent}
-    />
+    <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.hairline }]}>
+      {items.map((item, i) => (
+        <ItemCard
+          key={item.id}
+          item={item}
+          onRemove={onRemove}
+          onUpdateQuantity={onUpdateQuantity}
+          showBorder={i < items.length - 1}
+        />
+      ))}
+    </View>
   );
 });
 
 const styles = StyleSheet.create({
-  emptyContainer: { flex: 1 },
-  listContent: { padding: spacing.md, paddingTop: spacing.sm },
-  separator: { height: spacing.sm },
+  card: {
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
   empty: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
-    padding: spacing.xl,
+    gap: spacing.md - 4,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.xl,
   },
-  emptyIcon: { fontSize: 64 },
-  emptyTitle: { fontSize: fontSizes.title, fontWeight: '700' },
-  emptySubtitle: { fontSize: fontSizes.body, textAlign: 'center' },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyIconText: { fontSize: 26 },
+  emptyTitle: { fontSize: fontSizes.bodyLg, fontWeight: '600', letterSpacing: -0.2, textAlign: 'center' },
+  emptySubtitle: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
 });

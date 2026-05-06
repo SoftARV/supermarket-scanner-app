@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme, fontSizes, radius, spacing } from '@/theme';
+import { useTheme, fontSizes, fonts, radius, spacing } from '@/theme';
 
 interface Props {
   spent: number;
@@ -22,10 +22,10 @@ export function BudgetBar({ spent, budget, hideLabels = false }: Props) {
       </View>
       {!hideLabels && (
         <View style={styles.labels}>
-          <Text style={[styles.label, { color: c.muted }]}>
+          <Text style={[styles.label, { color: c.muted, fontFamily: fonts.sans }]}>
             €{spent.toFixed(2)} spent
           </Text>
-          <Text style={[styles.label, { color: over ? c.pop : c.muted }]}>
+          <Text style={[styles.label, { color: over ? c.pop : c.muted, fontFamily: fonts.sans }]}>
             {over
               ? `€${Math.abs(remaining).toFixed(2)} over`
               : `€${remaining.toFixed(2)} left`}

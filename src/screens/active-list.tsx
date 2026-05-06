@@ -2,41 +2,27 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import React, { useCallback } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShoppingList } from '@/components/list/ShoppingList';
 import { BudgetBar } from '@/components/ui/BudgetBar';
 import { LastAddedBadge } from '@/components/ui/LastAddedBadge';
 import { TotalDisplay } from '@/components/ui/TotalDisplay';
 import { useAppContext } from '@/context/AppContext';
-import { useTheme, fontSizes, spacing, touchTarget, radius } from '@/theme';
+import { useTheme, fontSizes, fonts, spacing, touchTarget, radius } from '@/theme';
 import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'ActiveList'>;
 
 export default function ActiveListScreen() {
   const c = useTheme();
-  const { activeTrip, removeItem, discardTrip } = useAppContext();
+  const { activeTrip, removeItem, updateQuantity } = useAppContext();
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
 
   const items = activeTrip?.items ?? [];
   const total = activeTrip?.total ?? 0;
-
-  const handleDiscard = useCallback(() => {
-    Alert.alert('Discard trip', 'Remove all items and cancel this trip?', [
-      { text: 'Keep shopping', style: 'cancel' },
-      {
-        text: 'Discard',
-        style: 'destructive',
-        onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          discardTrip();
-          navigation.navigate('History');
-        },
-      },
-    ]);
-  }, [discardTrip, navigation]);
+  const storeName = activeTrip?.store ?? 'Basket';
 
   const handleFinish = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -50,53 +36,79 @@ export default function ActiveListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-        <TouchableOpacity onPress={handleDiscard} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={[styles.headerAction, { color: c.pop }]}>Discard</Text>
+      {/* Nav bar */}
+      <View style={[styles.navBar, { paddingTop: insets.top + spacing.xs }]}>
+        <TouchableOpacity
+          style={styles.navLeft}
+          onPress={() => navigation.navigate('History')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={[styles.navBack, { color: c.muted, fontFamily: fonts.sans500 }]}>‹</Text>
+          <Text style={[styles.navLeftLabel, { color: c.muted, fontFamily: fonts.sans500 }]}>History</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: c.ink }]} numberOfLines={1}>
-          {activeTrip?.store ?? 'Basket'}
-        </Text>
-        {items.length > 0 ? (
-          <TouchableOpacity onPress={handleFinish} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={[styles.headerAction, { color: c.accent }]}>Finish</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.headerSpacer} />
-        )}
+
+        <View style={styles.navCenter}>
+          <View style={[styles.activeDot, { backgroundColor: c.accent }]} />
+          <Text style={[styles.navTitle, { color: c.muted, fontFamily: fonts.sans500 }]} numberOfLines={1}>
+            Active · {storeName}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.navRight}
+          onPress={handleFinish}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={[styles.navFinish, { color: c.ink, fontFamily: fonts.sans600 }]}>Finish</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Hero total block */}
-      <View style={[styles.hero, { backgroundColor: c.surface, borderBottomColor: c.hairline }]}>
-        <TotalDisplay total={total} size="xl" />
-        {items.length > 0 && <LastAddedBadge item={items[items.length - 1]} />}
-        {activeTrip?.budget != null && (
-          <View style={styles.heroBudget}>
-            <BudgetBar spent={total} budget={activeTrip.budget} />
-          </View>
-        )}
-      </View>
+      {/* Scrollable body */}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: spacing.md }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero */}
+        <View style={styles.hero}>
+          <Text style={[styles.heroLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>
+            THIS TRIP · {items.length} ITEM{items.length !== 1 ? 'S' : ''}
+          </Text>
+          <TotalDisplay total={total} size="xl" />
+          {activeTrip?.budget != null && (
+            <View style={styles.heroBudget}>
+              <BudgetBar spent={total} budget={activeTrip.budget} />
+            </View>
+          )}
+          {items.length > 0 && (
+            <LastAddedBadge item={items[items.length - 1]} />
+          )}
+        </View>
 
-      {/* Item list */}
-      <ShoppingList items={items} onRemove={removeItem} />
+        {/* Items card */}
+        <View style={styles.itemsWrapper}>
+          <ShoppingList items={items} onRemove={removeItem} onUpdateQuantity={updateQuantity} />
+        </View>
+      </ScrollView>
 
       {/* Footer */}
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: c.surface, borderTopColor: c.hairline }]}>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: insets.bottom + spacing.md, backgroundColor: c.bg },
+        ]}
+      >
         <TouchableOpacity
-          style={[styles.fab, { backgroundColor: c.accent }]}
+          style={[styles.scanBtn, { backgroundColor: c.accent }]}
           onPress={handleScan}
-          accessibilityLabel="Scan item"
+          accessibilityLabel="Scan next item"
           activeOpacity={0.85}
         >
-          <Text style={styles.fabIcon}>📷</Text>
-          <Text style={[styles.fabLabel, { color: c.accentInk }]}>Scan item</Text>
+          <Text style={[styles.scanBtnIcon, { color: c.accentInk }]}>📷</Text>
+          <Text style={[styles.scanBtnLabel, { color: c.accentInk, fontFamily: fonts.sans700 }]}>
+            Scan next item
+          </Text>
         </TouchableOpacity>
-        {items.length > 0 && (
-          <TouchableOpacity onPress={handleFinish} style={styles.finishLink}>
-            <Text style={[styles.finishLinkText, { color: c.muted }]}>Finish shopping →</Text>
-          </TouchableOpacity>
-        )}
       </View>
     </View>
   );
@@ -104,32 +116,56 @@ export default function ActiveListScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
+
+  navBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.md - 2,
+    paddingBottom: spacing.xs,
+    height: 56 + spacing.xs,
   },
-  headerTitle: { fontSize: fontSizes.title, fontWeight: '700', flex: 1, textAlign: 'center', marginHorizontal: spacing.sm },
-  headerAction: { fontSize: fontSizes.bodyLg, fontWeight: '600', minWidth: 52 },
-  headerSpacer: { width: 52 },
-  hero: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
+  navLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    borderBottomWidth: 1,
+    gap: 2,
+    minWidth: 72,
   },
-  heroBudget: { alignSelf: 'stretch' },
+  navBack: { fontSize: 22, lineHeight: 24 },
+  navLeftLabel: { fontSize: 14 },
+  navCenter: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  activeDot: { width: 6, height: 6, borderRadius: 3 },
+  navTitle: { fontSize: 13, letterSpacing: -0.1 },
+  navRight: { minWidth: 72, alignItems: 'flex-end' },
+  navFinish: { fontSize: 14, fontWeight: '600' },
+
+  scroll: { flex: 1 },
+  scrollContent: { padding: spacing.md },
+
+  hero: {
+    paddingHorizontal: spacing.sm,
+    paddingBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  heroLabel: {
+    fontSize: fontSizes.caption,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+  },
+  heroBudget: { marginTop: 2 },
+
+  itemsWrapper: { marginTop: spacing.xs },
+
   footer: {
-    borderTopWidth: 1,
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
     paddingHorizontal: spacing.md,
-    gap: spacing.sm,
   },
-  fab: {
+  scanBtn: {
     height: touchTarget.fab,
     borderRadius: radius.full,
     flexDirection: 'row',
@@ -137,8 +173,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
   },
-  fabIcon: { fontSize: 20 },
-  fabLabel: { fontSize: fontSizes.title, fontWeight: '700' },
-  finishLink: { alignItems: 'center', paddingVertical: spacing.xs },
-  finishLinkText: { fontSize: fontSizes.body, fontWeight: '500' },
+  scanBtnIcon: { fontSize: 16 },
+  scanBtnLabel: { fontSize: fontSizes.bodyLg, fontWeight: '700' },
 });

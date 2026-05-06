@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme, fontSizes, radius, spacing } from '@/theme';
+import { useTheme, fontSizes, fonts, radius, spacing } from '@/theme';
 
 interface Props {
   candidates: string[];
@@ -50,7 +50,7 @@ export const CandidateChips = React.memo(function CandidateChips({
               activeOpacity={0.7}
             >
               <Text
-                style={[styles.chipText, { color: isActive ? c.accentInk : c.accent }]}
+                style={[styles.chipText, { color: isActive ? c.accentInk : c.accent, fontFamily: fonts.sans600 }]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >

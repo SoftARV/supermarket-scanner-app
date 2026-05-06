@@ -50,7 +50,10 @@ export type ColorTokens = typeof lightColors;
 // ─── Typography ───────────────────────────────────────────────────
 // Inter Tight for all UI · Fraunces only for totals and prices
 export const fonts = {
-  sans: '"Inter Tight", -apple-system, system-ui, sans-serif',
+  sans: 'InterTight_400Regular',
+  sans500: 'InterTight_500Medium',
+  sans600: 'InterTight_600SemiBold',
+  sans700: 'InterTight_700Bold',
   serif: 'Fraunces_500Medium',
 };
 

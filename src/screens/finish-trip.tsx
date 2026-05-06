@@ -6,7 +6,7 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TotalDisplay } from '@/components/ui/TotalDisplay';
 import { useAppContext } from '@/context/AppContext';
-import { useTheme, spacing, fontSizes, touchTarget, radius } from '@/theme';
+import { useTheme, spacing, fontSizes, fonts, touchTarget, radius } from '@/theme';
 import { type RootStackParamList } from '@/types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'FinishTrip'>;
@@ -20,7 +20,12 @@ export default function FinishTripScreen() {
   const items = activeTrip?.items ?? [];
   const total = activeTrip?.total ?? 0;
   const budget = activeTrip?.budget ?? null;
-  const overBudget = budget !== null && total > budget;
+  const store = activeTrip?.store ?? '';
+  const over = budget !== null && total > budget;
+  const budgetDelta = budget !== null ? Math.abs(budget - total) : null;
+  const budgetPct = budget !== null ? Math.min(1, total / budget) : 0;
+
+  const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
   const handleConfirm = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -49,62 +54,114 @@ export default function FinishTripScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md, backgroundColor: c.surface, borderBottomColor: c.hairline }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={[styles.back, { color: c.accent }]}>Back</Text>
+      {/* Nav bar */}
+      <View style={[styles.navBar, { paddingTop: insets.top + spacing.xs }]}>
+        <TouchableOpacity
+          style={styles.navLeft}
+          onPress={handleKeepScanning}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={[styles.navBack, { color: c.muted, fontFamily: fonts.sans500 }]}>‹</Text>
+          <Text style={[styles.navBackLabel, { color: c.muted, fontFamily: fonts.sans500 }]}>Keep adding</Text>
         </TouchableOpacity>
-        <Text style={[styles.title, { color: c.ink }]}>Trip summary</Text>
-        <View style={styles.headerSpacer} />
+        <Text style={[styles.navTitle, { color: c.muted, fontFamily: fonts.sans500 }]}>Finish trip</Text>
+        <View style={styles.navSpacer} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        {/* Check circle hero */}
-        <View style={[styles.heroCard, { backgroundColor: c.surface, borderColor: c.hairline }]}>
-          <View style={[styles.checkCircle, { backgroundColor: c.accentSoft }]}>
+      <ScrollView contentContainerStyle={[styles.body, { paddingBottom: spacing.md }]}>
+        {/* Hero */}
+        <View style={styles.hero}>
+          <View style={[styles.checkCircle, { backgroundColor: c.accentSoft, borderColor: c.hairline }]}>
             <Text style={[styles.checkIcon, { color: c.accent }]}>✓</Text>
           </View>
-          <Text style={[styles.heroLabel, { color: c.muted }]}>Total spent</Text>
-          <TotalDisplay total={total} size="lg" />
-          {budget !== null && (
-            <Text style={[styles.budgetLine, { color: overBudget ? c.pop : c.muted }]}>
-              {overBudget
-                ? `€${(total - budget).toFixed(2)} over budget`
-                : `€${(budget - total).toFixed(2)} under budget`}
-            </Text>
-          )}
+          <Text style={[styles.heroTitle, { color: c.ink, fontFamily: fonts.serif }]}>Trip complete</Text>
+          <Text style={[styles.heroSub, { color: c.muted, fontFamily: fonts.sans }]}>
+            {store} · {time}
+          </Text>
         </View>
 
-        <Text style={[styles.sectionLabel, { color: c.muted }]}>{items.length} items</Text>
-        {items.map((item) => (
-          <View key={item.id} style={[styles.itemRow, { backgroundColor: c.surface, borderColor: c.hairline }]}>
-            <View style={styles.itemInfo}>
-              <Text style={[styles.itemName, { color: c.ink }]} numberOfLines={1}>{item.name}</Text>
-              <Text style={[styles.itemMeta, { color: c.muted }]}>
-                {item.quantity} × €{item.pricePerUnit.toFixed(2)}
-              </Text>
-            </View>
-            <Text style={[styles.itemTotal, { color: c.ink }]}>
-              €{(item.pricePerUnit * item.quantity).toFixed(2)}
-            </Text>
+        {/* Summary card */}
+        <View style={[styles.summaryCard, { backgroundColor: c.surface, borderColor: c.hairline }]}>
+          <View style={styles.summaryTop}>
+            <Text style={[styles.summaryLabel, { color: c.muted, fontFamily: fonts.sans600 }]}>TOTAL</Text>
+            <TotalDisplay total={total} size="md" />
           </View>
-        ))}
+
+          {budget !== null && (
+            <View style={[styles.budgetTrack, { backgroundColor: c.surface2 }]}>
+              <View
+                style={[
+                  styles.budgetFill,
+                  { width: `${budgetPct * 100}%`, backgroundColor: over ? c.pop : c.accent },
+                ]}
+              />
+            </View>
+          )}
+
+          <View style={[styles.statsRows, { borderTopColor: c.hairline }]}>
+            <View style={styles.statsRow}>
+              <Text style={[styles.statsKey, { color: c.muted, fontFamily: fonts.sans }]}>Items scanned</Text>
+              <Text style={[styles.statsVal, { color: c.ink, fontFamily: fonts.serif }]}>{items.length}</Text>
+            </View>
+            {budget !== null && (
+              <>
+                <View style={styles.statsRow}>
+                  <Text style={[styles.statsKey, { color: c.muted, fontFamily: fonts.sans }]}>Budget</Text>
+                  <Text style={[styles.statsVal, { color: c.ink, fontFamily: fonts.serif }]}>€{budget.toFixed(2)}</Text>
+                </View>
+                <View style={styles.statsRow}>
+                  <Text style={[styles.statsKey, { color: c.muted, fontFamily: fonts.sans }]}>
+                    {over ? 'Over budget' : 'Under budget'}
+                  </Text>
+                  <Text style={[styles.statsVal, { color: over ? c.pop : c.accent, fontFamily: fonts.serif }]}>
+                    {over ? '' : '✓ '}€{budgetDelta?.toFixed(2)}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: c.surface, borderTopColor: c.hairline }]}>
+      {/* Footer actions */}
+      <View
+        style={[
+          styles.footer,
+          {
+            paddingBottom: insets.bottom + spacing.md,
+            backgroundColor: c.surface,
+            borderTopColor: c.hairline,
+          },
+        ]}
+      >
         <TouchableOpacity
-          style={[styles.confirmBtn, { backgroundColor: c.accent }]}
+          style={[styles.saveBtn, { backgroundColor: c.accent }]}
           onPress={handleConfirm}
-          accessibilityLabel="Save trip"
+          accessibilityLabel="Save and finish trip"
           activeOpacity={0.85}
         >
-          <Text style={[styles.confirmBtnLabel, { color: c.accentInk }]}>Save trip</Text>
+          <Text style={[styles.saveBtnLabel, { color: c.accentInk, fontFamily: fonts.sans700 }]}>
+            Save &amp; finish
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryBtn} onPress={handleKeepScanning}>
-          <Text style={[styles.secondaryBtnLabel, { color: c.ink }]}>Keep scanning</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.discardBtn} onPress={handleDiscard}>
-          <Text style={[styles.discardBtnLabel, { color: c.pop }]}>Discard trip</Text>
-        </TouchableOpacity>
+        <View style={styles.secondaryRow}>
+          <TouchableOpacity
+            style={[styles.secondaryBtn, { borderColor: c.hairline }]}
+            onPress={handleKeepScanning}
+          >
+            <Text style={[styles.secondaryBtnLabel, { color: c.ink, fontFamily: fonts.sans600 }]}>
+              Keep scanning
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.secondaryBtn, { borderColor: c.hairline }]}
+            onPress={handleDiscard}
+          >
+            <Text style={[styles.secondaryBtnLabel, { color: c.pop, fontFamily: fonts.sans600 }]}>
+              Discard
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -112,75 +169,80 @@ export default function FinishTripScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
+
+  navBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
+    paddingBottom: spacing.xs,
+    height: 52 + spacing.xs,
   },
-  back: { fontSize: fontSizes.bodyLg, fontWeight: '500' },
-  headerSpacer: { width: 52 },
-  title: { fontSize: fontSizes.title, fontWeight: '700' },
-  body: { padding: spacing.md, gap: spacing.sm },
-  heroCard: {
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    padding: spacing.lg,
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    gap: spacing.sm,
-  },
+  navLeft: { flexDirection: 'row', alignItems: 'center', gap: 2, flex: 1 },
+  navBack: { fontSize: 22, lineHeight: 24 },
+  navBackLabel: { fontSize: 14 },
+  navTitle: { fontSize: 13, letterSpacing: -0.1, flex: 1, textAlign: 'center' },
+  navSpacer: { flex: 1 },
+
+  body: { padding: spacing.md, gap: spacing.md, paddingTop: spacing.xs },
+
+  hero: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
   checkCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.xs,
+    borderWidth: 1,
   },
   checkIcon: { fontSize: 28, fontWeight: '700' },
-  heroLabel: { fontSize: fontSizes.body, fontWeight: '500' },
-  budgetLine: { fontSize: fontSizes.body, fontWeight: '500' },
-  sectionLabel: {
-    fontSize: fontSizes.caption,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing.xs,
+  heroTitle: { fontSize: 28, fontWeight: '500', letterSpacing: -0.6 },
+  heroSub: { fontSize: 12, marginTop: -2 },
+
+  summaryCard: {
+    borderRadius: radius.lg + 2,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
-  itemRow: {
+  summaryTop: {
+    padding: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
   },
-  itemInfo: { flex: 1, gap: 2 },
-  itemName: { fontSize: fontSizes.bodyLg, fontWeight: '600' },
-  itemMeta: { fontSize: fontSizes.caption },
-  itemTotal: { fontSize: fontSizes.bodyLg, fontWeight: '700', marginLeft: spacing.sm },
+  summaryLabel: { fontSize: fontSizes.caption, fontWeight: '600', letterSpacing: 0.6 },
+  budgetTrack: {
+    height: 6,
+    marginHorizontal: spacing.md,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+  },
+  budgetFill: { height: '100%' },
+  statsRows: {
+    borderTopWidth: 1,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  statsKey: { fontSize: 13 },
+  statsVal: { fontSize: 14, fontWeight: '500' },
+
   footer: { padding: spacing.md, borderTopWidth: 1, gap: spacing.sm },
-  confirmBtn: {
+  saveBtn: {
     height: touchTarget.fab,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  confirmBtnLabel: { fontSize: fontSizes.title, fontWeight: '700' },
+  saveBtnLabel: { fontSize: fontSizes.bodyLg, fontWeight: '700' },
+  secondaryRow: { flexDirection: 'row', gap: spacing.sm },
   secondaryBtn: {
-    height: touchTarget.min,
+    flex: 1,
+    height: 42,
     borderRadius: radius.full,
+    borderWidth: 1.2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  secondaryBtnLabel: { fontSize: fontSizes.bodyLg, fontWeight: '600' },
-  discardBtn: {
-    height: touchTarget.min,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  discardBtnLabel: { fontSize: fontSizes.body, fontWeight: '500' },
+  secondaryBtnLabel: { fontSize: fontSizes.body, fontWeight: '600' },
 });

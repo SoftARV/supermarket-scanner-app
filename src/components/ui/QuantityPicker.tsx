@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme, fontSizes, radius, spacing, touchTarget } from '@/theme';
+import { useTheme, fontSizes, fonts, radius, spacing, touchTarget } from '@/theme';
 
 interface Props {
   quantity: number;
@@ -22,16 +22,16 @@ export const QuantityPicker = React.memo(function QuantityPicker({
         accessibilityLabel="Decrease quantity"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Text style={[styles.buttonText, { color: c.ink }]}>−</Text>
+        <Text style={[styles.buttonText, { color: c.ink, fontFamily: fonts.sans700 }]}>−</Text>
       </TouchableOpacity>
-      <Text style={[styles.quantity, { color: c.ink }]}>{quantity}</Text>
+      <Text style={[styles.quantity, { color: c.ink, fontFamily: fonts.sans700 }]}>{quantity}</Text>
       <TouchableOpacity
         style={[styles.button, { backgroundColor: c.surface2 }]}
         onPress={() => onChangeQuantity(quantity + 1)}
         accessibilityLabel="Increase quantity"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Text style={[styles.buttonText, { color: c.ink }]}>+</Text>
+        <Text style={[styles.buttonText, { color: c.ink, fontFamily: fonts.sans700 }]}>+</Text>
       </TouchableOpacity>
     </View>
   );
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonText: { fontSize: fontSizes.title, fontWeight: '600' },
+  buttonText: { fontSize: fontSizes.title, fontWeight: '700' },
   quantity: {
     fontSize: fontSizes.title,
     fontWeight: '700',
