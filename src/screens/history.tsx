@@ -40,7 +40,7 @@ export default function HistoryScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.headerTopRow}>
-          <View style={{ flex: 1 }} />
+          <View style={styles.spacer} />
           <TrendingUp size={18} color={c.muted} strokeWidth={1.6} />
         </View>
         <Text style={[styles.title, { color: c.ink, fontFamily: fonts.serif }]}>History</Text>
@@ -75,7 +75,7 @@ export default function HistoryScreen() {
       <ScrollView contentContainerStyle={[styles.body, trips.length === 0 && styles.bodyEmpty]}>
         {trips.length === 0 ? (
           <Text style={[styles.empty, { color: c.muted, fontFamily: fonts.sans }]}>
-            No trips yet.{'\n'}Tap "Start a new trip" to begin.
+            No trips yet.{'\n'}Tap &quot;Start a new trip&quot; to begin.
           </Text>
         ) : (
           trips.map((trip) => (
@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     gap: 2,
   },
+  spacer: { flex: 1 },
   headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',

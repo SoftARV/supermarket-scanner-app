@@ -73,7 +73,8 @@ export const ItemCard = React.memo(function ItemCard({ item, onRemove, onUpdateQ
         <Animated.View
           style={[
             styles.row,
-            { backgroundColor: c.surface, borderBottomColor: c.hairline, borderBottomWidth: showBorder ? 1 : 0 },
+            { backgroundColor: c.surface, borderBottomColor: c.hairline },
+            showBorder && styles.rowBorder,
             cardStyle,
           ]}
         >
@@ -136,6 +137,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     gap: spacing.md - 4,
   },
+  rowBorder: { borderBottomWidth: 1 },
   qtyBadge: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -132,7 +132,8 @@ export default function TripDetailScreen() {
               key={item.id}
               style={[
                 styles.itemRow,
-                { borderBottomColor: c.hairline, borderBottomWidth: i < trip.items.length - 1 ? 1 : 0 },
+                { borderBottomColor: c.hairline },
+                i < trip.items.length - 1 && styles.itemRowBorder,
               ]}
             >
               <View style={[styles.qtyBadge, { backgroundColor: c.surface2 }]}>
@@ -237,6 +238,7 @@ const styles = StyleSheet.create({
     gap: spacing.md - 4,
     minHeight: 60,
   },
+  itemRowBorder: { borderBottomWidth: 1 },
   qtyBadge: {
     width: 36,
     height: 36,
